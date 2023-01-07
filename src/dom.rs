@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::collections::HashMap;
 
 pub type AttributesMap = HashMap<String, String>;
@@ -16,6 +14,7 @@ impl PartialEq for ElementData {
   }
 }
 
+#[allow(dead_code)]
 impl ElementData {
   pub fn new(tag_name: String, attributes: AttributesMap) -> ElementData {
     ElementData {
@@ -45,6 +44,7 @@ pub struct Node {
   node_type: NodeType,
 }
 
+#[allow(dead_code)]
 impl Node {
   pub fn children(&self) -> Vec<Node> {
     self.children.clone()
