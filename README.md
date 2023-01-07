@@ -1,6 +1,6 @@
 # minimal-browser
 
-A minimal browser with a super simple rendering engine for HTML, using Rust.
+A minimal browser with a super simple rendering engine for HTML and CSS, using Rust.
 
 Credit: https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html
 
