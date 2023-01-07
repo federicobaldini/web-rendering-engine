@@ -19,3 +19,11 @@ $ git clone https://github.com/federicobaldini/minimal-browser
 $ cd minimal-browser
 minimal-browser->$ cargo run 
 ```
+
+## Test
+
+To run code tests, use the following command
+
+```bash
+minimal-browser->$ cargo test 
+```
