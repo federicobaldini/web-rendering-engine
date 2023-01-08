@@ -1,3 +1,9 @@
+/**
+ * Features to add:
+ * - Extend NodeType to include additional types like comment nodes;
+ * - Write code to pretty-print a tree of DOM nodes;
+ */
+
 use std::collections::HashMap;
 
 pub type AttributesMap = HashMap<String, String>;
