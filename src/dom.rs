@@ -98,9 +98,9 @@ macro_rules! hashmap {
 mod tests {
   use crate::dom::*;
 
-  // Test the associated function text() of the Node struct implementation.
+  // Test the associated function text() of the Node struct implementation
   #[test]
-  fn test_node_text() {
+  fn test_text() {
     let node: Node = Node::text("Hello World!".to_string());
 
     assert_eq!(node.children(), Vec::new());
@@ -110,9 +110,9 @@ mod tests {
     }
   }
 
-  // Test the associated function element() of the Node struct implementation.
+  // Test the associated function element() of the Node struct implementation
   #[test]
-  fn test_node_element() {
+  fn test_element() {
     let tag_name: String = String::from("p");
     let attributes: AttributesMap = hashmap![String::from("class") => String::from("paragraph")];
     let children: Vec<Node> = vec![];
