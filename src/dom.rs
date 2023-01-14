@@ -1,7 +1,6 @@
 /**
  * Features to add:
  * - Extend NodeType to include additional types like comment nodes;
- * - Write code to pretty-print a tree of DOM nodes;
  */
 use std::{
   collections::HashMap,
@@ -93,6 +92,27 @@ impl Node {
         tag_name,
         attributes,
       }),
+    }
+  }
+
+  pub fn print_node_tree(node: Node, indent: usize) {
+    match node.node_type {
+      NodeType::Text(text) => {
+        // Indentation of `indent` spaces before the next argument
+        println!("{:spaces$}{}", "", text, spaces = indent);
+      }
+      NodeType::Element(element) => {
+        if node.children.len() > 0 {
+          println!("{:spaces$}{}", "", element, spaces = indent);
+          for child in node.children {
+            Node::print_node_tree(child, indent + 2);
+          }
+          println!("{:spaces$}</{}>", "", element.tag_name(), spaces = indent);
+        } else {
+          print!("{:spaces$}{}", "", element, spaces = indent);
+          println!("</{}>", element.tag_name());
+        }
+      }
     }
   }
 }
