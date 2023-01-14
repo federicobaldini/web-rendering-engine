@@ -3,7 +3,10 @@
  * - Extend NodeType to include additional types like comment nodes;
  * - Write code to pretty-print a tree of DOM nodes;
  */
-use std::collections::HashMap;
+use std::{
+  collections::HashMap,
+  fmt::{self, Formatter, Result},
+};
 
 pub type AttributesMap = HashMap<String, String>;
 
@@ -16,6 +19,16 @@ pub struct ElementData {
 impl PartialEq for ElementData {
   fn eq(&self, other: &Self) -> bool {
     *self.tag_name == *other.tag_name && self.attributes == other.attributes
+  }
+}
+
+impl fmt::Display for ElementData {
+  fn fmt(&self, f: &mut Formatter) -> Result {
+    write!(f, "<{}", self.tag_name)?;
+    for (key, value) in &self.attributes {
+      write!(f, " {}='{}'", key, value)?;
+    }
+    write!(f, ">")
   }
 }
 
