@@ -1,3 +1,10 @@
+/**
+ * Features to add:
+ * - Modify the parser to take a subset of HTML as input and produces a tree of DOM nodes;
+ * - Manage HTML comments `<!-- Hi! -->`;
+ * - Create an invalid HTML file that causes the parser fail. Modify the parser to recover
+ *   from the error and produce a DOM tree for the test file;
+ */
 use crate::dom;
 use crate::hashmap;
 use std::str::CharIndices;
