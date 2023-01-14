@@ -157,3 +157,300 @@ impl Parser {
     }
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::hashmap;
+  use crate::html_parser::*;
+
+  // Test the method next_char() of the Parser struct implementation
+  #[test]
+  fn test_next_char() {
+    let mut parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test character in position 0
+    assert_eq!(parser.next_char(), '<');
+    parser.position = 1;
+    // Test character in position 1
+    assert_eq!(parser.next_char(), 'p');
+    parser.position = 18;
+    // Test character in position 20
+    assert_eq!(parser.next_char(), '>');
+  }
+
+  // Test the method starts_with() of the Parser struct implementation
+  #[test]
+  fn test_starts_with() {
+    let parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test that input starts (or not) with specific string from position 0
+    assert!(parser.starts_with("<"));
+    assert!(parser.starts_with("<p>"));
+    assert!(!parser.starts_with("Hello"));
+    assert!(!parser.starts_with("!"));
+
+    let parser: Parser = Parser {
+      position: 3,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+    // Test that input starts (or not) with specific string from position 4
+    assert!(!parser.starts_with("<"));
+    assert!(!parser.starts_with("<p>"));
+    assert!(parser.starts_with("H"));
+    assert!(parser.starts_with("Hello"));
+    assert!(!parser.starts_with("!"));
+  }
+
+  // Test the method eof() of the Parser struct implementation
+  #[test]
+  fn test_eof() {
+    let parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test end of file for position 0
+    assert_eq!(parser.eof(), false);
+
+    let parser: Parser = Parser {
+      position: 5,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test end of file for position 5
+    assert_eq!(parser.eof(), false);
+
+    let parser: Parser = Parser {
+      position: 19,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test end of file for position 21
+    assert_eq!(parser.eof(), true);
+  }
+
+  // Test the method consume_char() of the Parser struct implementation
+  #[test]
+  fn test_consume_char() {
+    let mut parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test consuming character in position 0
+    assert_eq!(parser.consume_char(), '<');
+    assert_eq!(parser.position, 1);
+
+    let mut parser: Parser = Parser {
+      position: 3,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test consuming character in position 4
+    assert_eq!(parser.consume_char(), 'H');
+    assert_eq!(parser.position, 4);
+
+    let mut parser: Parser = Parser {
+      position: 8,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test consuming character in position 9
+    assert_eq!(parser.consume_char(), ' ');
+    assert_eq!(parser.position, 9);
+  }
+
+  // Test the method consume_while() of the Parser struct implementation
+  #[test]
+  fn test_consume_while() {
+    let mut parser: Parser = Parser::new(3, "<p>Hello World!</p>".to_string());
+
+    // Test consuming while character is a letter
+    assert_eq!(parser.consume_while(|c| c.is_alphabetic()), "Hello");
+    assert_eq!(parser.position, 8);
+
+    // Test consuming while character is a whitespace
+    assert_eq!(parser.consume_while(|c| c.is_whitespace()), " ");
+    assert_eq!(parser.position, 9);
+
+    // Test consuming while character is a digit
+    assert_eq!(parser.consume_while(|c| c.is_digit(10)), "");
+    assert_eq!(parser.position, 9);
+  }
+
+  // Test the method parse_tag_name() of the Parser struct implementation
+  #[test]
+  fn test_parse_tag_name() {
+    let mut parser: Parser = Parser::new(1, "<p>Hello World!</p>".to_string());
+
+    // Test consuming the tag name with class
+    assert_eq!(parser.parse_tag_name(), "p");
+    assert_eq!(parser.position, 2);
+
+    let mut parser: Parser = Parser {
+      position: 1,
+      input: "<div>".to_string(),
+    };
+
+    // Test consuming the tag name
+    assert_eq!(parser.parse_tag_name(), "div");
+    assert_eq!(parser.position, 4);
+  }
+
+  // Test the method parse_text() of the Parser struct implementation
+  #[test]
+  fn test_parse_text() {
+    let mut parser: Parser = Parser::new(3, "<p>Hello World!</p>".to_string());
+    let node: dom::Node = dom::Node::text("Hello World!".to_string());
+
+    // Test consuming the tag text
+    assert_eq!(parser.parse_text(), node);
+    assert_eq!(parser.position, 15);
+  }
+
+  // Test the method parse_element() of the Parser struct implementation
+  #[test]
+  fn test_parse_element() {
+    let mut parser: Parser = Parser::new(0, "<p class='paragraph'>Hello World!</p>".to_string());
+    let tag_name: String = String::from("p");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("paragraph")];
+    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+
+    // Test consuming the tag name, the tag class and the tag text
+    assert_eq!(parser.parse_element(), node);
+    assert_eq!(parser.position, 37);
+  }
+
+  // Test the method parse_node() of the Parser struct implementation
+  #[test]
+  fn test_parse_node() {
+    let mut parser: Parser = Parser::new(0, "Hello World!".to_string());
+    let node: dom::Node = dom::Node::text("Hello World!".to_string());
+
+    // Test consuming a node with only the tag text
+    assert_eq!(parser.parse_node(), node);
+    assert_eq!(parser.position, 12);
+
+    let mut parser: Parser = Parser::new(0, "<p class='paragraph'>Hello World!</p>".to_string());
+    let tag_name: String = String::from("p");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("paragraph")];
+    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+
+    // Test consuming a node with tag name, the tag class and the tag text
+    assert_eq!(parser.parse_node(), node);
+    assert_eq!(parser.position, 37);
+  }
+
+  // Test the method parse_attribute() of the Parser struct implementation
+  #[test]
+  fn test_parse_attribute() {
+    let mut parser: Parser = Parser::new(3, "<p class='paragraph'>Hello World!</p>".to_string());
+
+    // Test consuming a node with the attribute `class='paragraph'`
+    assert_eq!(
+      parser.parse_attribute(),
+      ("class".to_string(), "paragraph".to_string())
+    );
+    assert_eq!(parser.position, 20);
+  }
+
+  // Test the method parse_attribute_value() of the Parser struct implementation
+  #[test]
+  fn test_parse_attribute_value() {
+    let mut parser: Parser = Parser::new(9, "<p class='paragraph'>Hello World!</p>".to_string());
+
+    // Test consuming a node with the attribute value `paragraph`
+    assert_eq!(parser.parse_attribute_value(), "paragraph".to_string());
+    assert_eq!(parser.position, 20);
+  }
+
+  // Test the method parse_attributes() of the Parser struct implementation
+  #[test]
+  fn test_parse_attributes() {
+    let mut parser: Parser = Parser::new(
+      3,
+      "<p class='paragraph' style='color:red;'>Hello World!</p>".to_string(),
+    );
+    let attributes: dom::AttributeMap = hashmap![String::from("class") => String::from("paragraph"), String::from("style") => String::from("color:red;")];
+
+    // Test consuming a node with the attributes `class='paragraph'` and `style='color:red;'`
+    assert_eq!(parser.parse_attributes(), attributes);
+    assert_eq!(parser.position, 39);
+  }
+
+  // Test the method parse_nodes() of the Parser struct implementation
+  #[test]
+  fn test_parse_nodes() {
+    let mut parser: Parser = Parser::new(
+      0,
+      "<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string(),
+    );
+    // Node 1: <div class='container-1'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-1")];
+    let children: Vec<dom::Node> = vec![];
+    let node_1: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    // Node 3: <p class='paragraph'>
+    let tag_name: String = String::from("p");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("paragraph")];
+    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node_3: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    // Node 2: <div class='container-2'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-2")];
+    let children: Vec<dom::Node> = vec![node_3];
+    let node_2: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+
+    // Test consuming nested and sibling nodes: node_1, node_2 -> node_3
+    assert_eq!(parser.parse_nodes(), vec![node_1, node_2]);
+    assert_eq!(parser.position, 99);
+  }
+
+  // Test the method parse() of the Parser struct implementation
+  #[test]
+  fn test_parse() {
+    // Node 2: <div class='container-1'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-1")];
+    let children: Vec<dom::Node> = vec![];
+    let node_2: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    // Node 2: <p class='paragraph'>
+    let tag_name: String = String::from("p");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("paragraph")];
+    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node_4: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    // Node 3: <div class='container-2'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-2")];
+    let children: Vec<dom::Node> = vec![node_4];
+    let node_3: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    // Node 1: <html>
+    let tag_name: String = String::from("html");
+    let attributes: dom::AttributeMap = hashmap![];
+    let children: Vec<dom::Node> = vec![node_2.clone(), node_3.clone()];
+    let node_1: dom::Node =
+      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+
+    // Test parsing nodes without a root element
+    assert_eq!(Parser::parse("<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string()), node_1);
+    // Test parsing nodes with a root element
+    assert_eq!(
+      Parser::parse(
+        "<div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string()
+      ),
+      node_3
+    );
+  }
+}
