@@ -8,6 +8,10 @@ pub struct Parser {
 }
 
 impl Parser {
+  pub fn new(position: usize, input: String) -> Parser {
+    Parser { position, input }
+  }
+
   // Read the current character without consuming it
   fn next_char(&self) -> char {
     self.input[self.position..].chars().next().unwrap()
@@ -136,11 +140,7 @@ impl Parser {
 
   // Parse an HTML document and return the root element
   pub fn parse(source: String) -> dom::Node {
-    let mut nodes: Vec<dom::Node> = Parser {
-      position: 0,
-      input: source,
-    }
-    .parse_nodes();
+    let mut nodes: Vec<dom::Node> = Parser::new(0, source).parse_nodes();
 
     // If the document contains a root element, just return it. Otherwise, create one
     if nodes.len() == 1 {
