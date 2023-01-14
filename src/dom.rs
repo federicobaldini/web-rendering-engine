@@ -7,12 +7,12 @@ use std::{
   fmt::{self, Formatter, Result},
 };
 
-pub type AttributesMap = HashMap<String, String>;
+pub type AttributeMap = HashMap<String, String>;
 
 #[derive(Clone, Debug)]
 pub struct ElementData {
   tag_name: String,
-  attributes: AttributesMap,
+  attributes: AttributeMap,
 }
 
 impl PartialEq for ElementData {
@@ -33,7 +33,7 @@ impl fmt::Display for ElementData {
 
 #[allow(dead_code)]
 impl ElementData {
-  pub fn new(tag_name: String, attributes: AttributesMap) -> ElementData {
+  pub fn new(tag_name: String, attributes: AttributeMap) -> ElementData {
     ElementData {
       tag_name,
       attributes,
@@ -42,7 +42,7 @@ impl ElementData {
   pub fn tag_name(&self) -> String {
     self.tag_name.clone()
   }
-  pub fn attributes(&self) -> AttributesMap {
+  pub fn attributes(&self) -> AttributeMap {
     self.attributes.clone()
   }
 }
@@ -85,7 +85,7 @@ impl Node {
     }
   }
 
-  pub fn element(tag_name: String, attributes: AttributesMap, children: Vec<Node>) -> Node {
+  pub fn element(tag_name: String, attributes: AttributeMap, children: Vec<Node>) -> Node {
     Node {
       children,
       node_type: NodeType::Element(ElementData {
@@ -146,7 +146,7 @@ mod tests {
   #[test]
   fn test_element() {
     let tag_name: String = String::from("p");
-    let attributes: AttributesMap = hashmap![String::from("class") => String::from("paragraph")];
+    let attributes: AttributeMap = hashmap![String::from("class") => String::from("paragraph")];
     let children: Vec<Node> = vec![];
     let node: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
 

@@ -67,7 +67,7 @@ impl Parser {
     // Opening tag
     assert!(self.consume_char() == '<');
     let tag_name: String = self.parse_tag_name();
-    let attributes: dom::AttributesMap = self.parse_attributes();
+    let attributes: dom::AttributeMap = self.parse_attributes();
     assert!(self.consume_char() == '>');
 
     // Contents
@@ -108,8 +108,8 @@ impl Parser {
   }
 
   // Parse a list of name="value" pairs, separated by whitespace
-  fn parse_attributes(&mut self) -> dom::AttributesMap {
-    let mut attributes: dom::AttributesMap = hashmap![];
+  fn parse_attributes(&mut self) -> dom::AttributeMap {
+    let mut attributes: dom::AttributeMap = hashmap![];
     loop {
       self.consume_whitespace();
       if self.next_char() == '>' {
