@@ -31,7 +31,6 @@ impl fmt::Display for ElementData {
   }
 }
 
-#[allow(dead_code)]
 impl ElementData {
   pub fn new(tag_name: String, attributes: AttributeMap) -> ElementData {
     ElementData {
@@ -41,9 +40,6 @@ impl ElementData {
   }
   pub fn tag_name(&self) -> String {
     self.tag_name.clone()
-  }
-  pub fn attributes(&self) -> AttributeMap {
-    self.attributes.clone()
   }
 }
 
@@ -61,7 +57,6 @@ pub struct Node {
   node_type: NodeType,
 }
 
-#[allow(dead_code)]
 impl Node {
   pub fn children(&self) -> Vec<Node> {
     self.children.clone()
