@@ -2,7 +2,7 @@
 
 A minimal browser with a super simple rendering engine for HTML and CSS, using Rust.
 
-Credit: https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html
+Credit: https://github.com/mbrubeck and https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html
 
 ## Requirements
 
