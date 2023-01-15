@@ -130,11 +130,10 @@ mod tests {
   fn test_text() {
     let node: Node = Node::text("Hello World!".to_string());
 
+    // Test the node type Text
+    assert_eq!(node.node_type(), NodeType::Text("Hello World!".to_string()));
+    // Test the children
     assert_eq!(node.children(), Vec::new());
-    match node.node_type() {
-      NodeType::Text(data) => assert_eq!(data, "Hello World!".to_string()),
-      _ => panic!("Unexpected node type"),
-    }
   }
 
   // Test the associated function element() of the Node struct implementation
@@ -145,10 +144,12 @@ mod tests {
     let children: Vec<Node> = vec![];
     let node: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
 
+    // Test the node type Element
     assert_eq!(
       node.node_type(),
       NodeType::Element(ElementData::new(tag_name, attributes))
     );
+    // Test the children
     assert_eq!(node.children(), children);
   }
 }
