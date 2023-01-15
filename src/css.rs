@@ -3,19 +3,19 @@ pub type Specificity = (usize, usize, usize);
 pub struct SimpleSelector {
   tag_name: Option<String>,
   id: Option<String>,
-  class_list: Vec<String>,
+  classes: Vec<String>,
 }
 
 impl SimpleSelector {
   pub fn new(
     tag_name: Option<String>,
     id: Option<String>,
-    class_list: Vec<String>,
+    classes: Vec<String>,
   ) -> SimpleSelector {
     SimpleSelector {
       tag_name,
       id,
-      class_list,
+      classes,
     }
   }
   pub fn set_tag_name(&mut self, tag_name: Option<String>) {
@@ -25,7 +25,7 @@ impl SimpleSelector {
     self.id = id;
   }
   pub fn add_class(&mut self, class: String) {
-    self.class_list.push(class);
+    self.classes.push(class);
   }
 }
 
@@ -38,7 +38,7 @@ impl Selector {
     // http://www.w3.org/TR/selectors/#specificity
     let Selector::Simple(ref simple) = *self;
     let a = simple.id.iter().count();
-    let b = simple.class_list.len();
+    let b = simple.classes.len();
     let c = simple.tag_name.iter().count();
     (a, b, c)
   }
