@@ -41,6 +41,9 @@ impl ElementData {
   pub fn tag_name(&self) -> String {
     self.tag_name.clone()
   }
+  pub fn attributes(&self) -> AttributeMap {
+    self.attributes.clone()
+  }
 }
 
 #[derive(Clone, PartialEq, Debug)]
