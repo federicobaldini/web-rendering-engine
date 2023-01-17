@@ -214,4 +214,125 @@ impl Parser {
 #[cfg(test)]
 mod tests {
   use crate::css_parser::*;
+
+  // Test the method next_char() of the Parser struct implementation
+  #[test]
+  fn test_next_char() {
+    let mut parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test character in position 0
+    assert_eq!(parser.next_char(), '<');
+    parser.position = 1;
+    // Test character in position 1
+    assert_eq!(parser.next_char(), 'p');
+    parser.position = 18;
+    // Test character in position 20
+    assert_eq!(parser.next_char(), '>');
+  }
+
+  // Test the method eof() of the Parser struct implementation
+  #[test]
+  fn test_eof() {
+    let parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test end of file for position 0
+    assert_eq!(parser.eof(), false);
+
+    let parser: Parser = Parser {
+      position: 5,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test end of file for position 5
+    assert_eq!(parser.eof(), false);
+
+    let parser: Parser = Parser {
+      position: 19,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test end of file for position 21
+    assert_eq!(parser.eof(), true);
+  }
+
+  // Test the method consume_char() of the Parser struct implementation
+  #[test]
+  fn test_consume_char() {
+    let mut parser: Parser = Parser::new(0, "<p>Hello World!</p>".to_string());
+
+    // Test consuming character in position 0
+    assert_eq!(parser.consume_char(), '<');
+    assert_eq!(parser.position, 1);
+
+    let mut parser: Parser = Parser {
+      position: 3,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test consuming character in position 4
+    assert_eq!(parser.consume_char(), 'H');
+    assert_eq!(parser.position, 4);
+
+    let mut parser: Parser = Parser {
+      position: 8,
+      input: "<p>Hello World!</p>".to_string(),
+    };
+
+    // Test consuming character in position 9
+    assert_eq!(parser.consume_char(), ' ');
+    assert_eq!(parser.position, 9);
+  }
+
+  // Test the method consume_while() of the Parser struct implementation
+  #[test]
+  fn test_consume_while() {
+    let mut parser: Parser = Parser::new(3, "<p>Hello World!</p>".to_string());
+
+    // Test consuming while character is a letter
+    assert_eq!(parser.consume_while(|c| c.is_alphabetic()), "Hello");
+    assert_eq!(parser.position, 8);
+
+    // Test consuming while character is a whitespace
+    assert_eq!(parser.consume_while(|c| c.is_whitespace()), " ");
+    assert_eq!(parser.position, 9);
+
+    // Test consuming while character is a digit
+    assert_eq!(parser.consume_while(|c| c.is_digit(10)), "");
+    assert_eq!(parser.position, 9);
+  }
+
+  // Test the method parse_unit() of the Parser struct implementation
+  #[test]
+  #[should_panic]
+  fn test_parse_unit() {
+    let mut parser: Parser = Parser::new(19, ".container{width:200px}".to_string());
+
+    // Test unit in position 19
+    assert_eq!(parser.parse_unit(), css::Unit::Px);
+
+    let mut parser = Parser::new(19, ".container{width:200em}".to_string());
+
+    // Test unit in position 19, it has to panic because "em" unit is not supported
+    parser.parse_unit();
+  }
+
+  // Test the method parse_float() of the Parser struct implementation
+  #[test]
+  #[should_panic]
+  fn test_parse_float() {
+    let mut parser: Parser = Parser::new(17, ".container{width:100.5px}".to_string());
+
+    // Test float number in position 17
+    assert_eq!(parser.parse_float(), 100.5);
+
+    let mut parser: Parser = Parser::new(17, ".container{width:100px}".to_string());
+
+    // Test integer number in position 17
+    assert_eq!(parser.parse_float(), 100.0);
+
+    let mut parser: Parser = Parser::new(17, ".container{width:ABCpx}".to_string());
+
+    // Test number in position 17, it has to panic because "ABC" is not a number
+    parser.parse_float();
+  }
 }
