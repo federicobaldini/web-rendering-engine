@@ -51,9 +51,16 @@ pub enum Value {
   // insert more values here
 }
 
+#[derive(Copy, Clone, Debug)]
 pub enum Unit {
   Px,
   // insert more units here
+}
+
+impl PartialEq for Unit {
+  fn eq(&self, other: &Self) -> bool {
+    *self as u8 == *other as u8
+  }
 }
 
 pub struct Color {
