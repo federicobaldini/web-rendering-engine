@@ -8,7 +8,7 @@
  */
 use std::str::CharIndices;
 
-use crate::stylesheet;
+use crate::css;
 
 fn valid_identifier_char(c: char) -> bool {
   match c {
@@ -68,9 +68,9 @@ impl Parser {
     self.consume_while(valid_identifier_char)
   }
 
-  fn parse_unit(&mut self) -> stylesheet::Unit {
+  fn parse_unit(&mut self) -> css::Unit {
     match &*self.parse_identifier().to_ascii_lowercase() {
-      "px" => stylesheet::Unit::Px,
+      "px" => css::Unit::Px,
       _ => panic!("unrecognized unit"),
     }
   }
@@ -83,8 +83,8 @@ impl Parser {
     s.parse().unwrap()
   }
 
-  fn parse_length(&mut self) -> stylesheet::Value {
-    stylesheet::Value::Length(self.parse_float(), self.parse_unit())
+  fn parse_length(&mut self) -> css::Value {
+    css::Value::Length(self.parse_float(), self.parse_unit())
   }
 
   // Parse two hexadecimal digits
@@ -94,9 +94,9 @@ impl Parser {
     u8::from_str_radix(s, 16).unwrap()
   }
 
-  fn parse_color(&mut self) -> stylesheet::Value {
+  fn parse_color(&mut self) -> css::Value {
     assert_eq!(self.consume_char(), '#');
-    stylesheet::Value::ColorValue(stylesheet::Color::new(
+    css::Value::ColorValue(css::Color::new(
       self.parse_hex_pair(),
       self.parse_hex_pair(),
       self.parse_hex_pair(),
@@ -104,31 +104,31 @@ impl Parser {
     ))
   }
 
-  fn parse_value(&mut self) -> stylesheet::Value {
+  fn parse_value(&mut self) -> css::Value {
     match self.next_char() {
       '0'..='9' => self.parse_length(),
       '#' => self.parse_color(),
-      _ => stylesheet::Value::Keyword(self.parse_identifier()),
+      _ => css::Value::Keyword(self.parse_identifier()),
     }
   }
 
   // Parse one `<property>: <value>;` declaration
-  fn parse_declaration(&mut self) -> stylesheet::Declaration {
+  fn parse_declaration(&mut self) -> css::Declaration {
     let property_name: String = self.parse_identifier();
     self.consume_whitespace();
     assert_eq!(self.consume_char(), ':');
     self.consume_whitespace();
-    let value: stylesheet::Value = self.parse_value();
+    let value: css::Value = self.parse_value();
     self.consume_whitespace();
     assert_eq!(self.consume_char(), ';');
 
-    stylesheet::Declaration::new(property_name, value)
+    css::Declaration::new(property_name, value)
   }
 
   // Parse a list of declarations enclosed in `{ ... }`
-  fn parse_declarations(&mut self) -> Vec<stylesheet::Declaration> {
+  fn parse_declarations(&mut self) -> Vec<css::Declaration> {
     assert_eq!(self.consume_char(), '{');
-    let mut declarations: Vec<stylesheet::Declaration> = Vec::new();
+    let mut declarations: Vec<css::Declaration> = Vec::new();
     loop {
       self.consume_whitespace();
       if self.next_char() == '}' {
@@ -141,9 +141,8 @@ impl Parser {
   }
 
   // Parse one simple selector, e.g.: `type#id.class1.class2.class3`
-  fn parse_simple_selector(&mut self) -> stylesheet::SimpleSelector {
-    let mut selector: stylesheet::SimpleSelector =
-      stylesheet::SimpleSelector::new(None, None, vec![]);
+  fn parse_simple_selector(&mut self) -> css::SimpleSelector {
+    let mut selector: css::SimpleSelector = css::SimpleSelector::new(None, None, vec![]);
     while !self.eof() {
       match self.next_char() {
         '#' => {
@@ -168,10 +167,10 @@ impl Parser {
   }
 
   // Parse a comma-separated list of selectors
-  fn parse_selectors(&mut self) -> Vec<stylesheet::Selector> {
-    let mut selectors: Vec<stylesheet::Selector> = Vec::new();
+  fn parse_selectors(&mut self) -> Vec<css::Selector> {
+    let mut selectors: Vec<css::Selector> = Vec::new();
     loop {
-      selectors.push(stylesheet::Selector::Simple(self.parse_simple_selector()));
+      selectors.push(css::Selector::Simple(self.parse_simple_selector()));
       self.consume_whitespace();
       match self.next_char() {
         ',' => {
@@ -183,19 +182,17 @@ impl Parser {
       }
     }
     // Return selectors with highest specificity first, for use in matching
-    selectors.sort_by(|a: &stylesheet::Selector, b: &stylesheet::Selector| {
-      b.specificity().cmp(&a.specificity())
-    });
+    selectors.sort_by(|a: &css::Selector, b: &css::Selector| b.specificity().cmp(&a.specificity()));
     return selectors;
   }
 
   // Parse a rule set: `<selectors> { <declarations> }`
-  fn parse_rule(&mut self) -> stylesheet::Rule {
-    stylesheet::Rule::new(self.parse_selectors(), self.parse_declarations())
+  fn parse_rule(&mut self) -> css::Rule {
+    css::Rule::new(self.parse_selectors(), self.parse_declarations())
   }
 
   // Parse a list of rule sets, separated by optional whitespace
-  fn parse_rules(&mut self) -> Vec<stylesheet::Rule> {
+  fn parse_rules(&mut self) -> Vec<css::Rule> {
     let mut rules = Vec::new();
     loop {
       self.consume_whitespace();
@@ -208,9 +205,9 @@ impl Parser {
   }
 
   // Parse a whole CSS stylesheet
-  pub fn parse(source: String) -> stylesheet::Stylesheet {
+  pub fn parse(source: String) -> css::Stylesheet {
     let mut parser: Parser = Parser::new(0, source);
-    stylesheet::Stylesheet::new(parser.parse_rules())
+    css::Stylesheet::new(parser.parse_rules())
   }
 }
 
