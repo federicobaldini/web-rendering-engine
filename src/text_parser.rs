@@ -13,6 +13,11 @@ impl TextParser {
   pub fn position(&self) -> usize {
     self.position
   }
+
+  pub fn increment_position(&mut self, value: usize) {
+    self.position += value;
+  }
+
   pub fn input(&self) -> String {
     self.input.clone()
   }
@@ -66,18 +71,18 @@ mod tests {
   // Test the method next_char of the TextParser struct implementation
   #[test]
   fn test_next_char() {
-    let mut parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
+    let mut text_parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
 
     // Assert that the next_char method return the character '<'
-    assert_eq!(parser.next_char(), '<');
+    assert_eq!(text_parser.next_char(), '<');
 
-    parser.position = 1;
+    text_parser.position = 1;
     // Assert that the next_char method return the character 'p'
-    assert_eq!(parser.next_char(), 'p');
+    assert_eq!(text_parser.next_char(), 'p');
 
-    parser.position = 18;
+    text_parser.position = 18;
     // Assert that the next_char method return the character '>'
-    assert_eq!(parser.next_char(), '>');
+    assert_eq!(text_parser.next_char(), '>');
   }
 
   // Test the method starts_with of the TextParser struct implementation
@@ -108,7 +113,7 @@ mod tests {
   // Test the method eof of the TextParser struct implementation
   #[test]
   fn test_eof() {
-    let parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
+    let mut text_parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
 
     // Assert that the eof method returns false because the current position is not at the end of the input string
     assert_eq!(text_parser.eof(), false);
@@ -125,33 +130,33 @@ mod tests {
   // Test the method consume_char of the TextParser struct implementation
   #[test]
   fn test_consume_char() {
-    let mut parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
+    let mut text_parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
 
     // Assert that the consume_char method correctly consumes only the character '<'
     // and returns the consumed characters as a string
-    assert_eq!(parser.consume_char(), '<');
+    assert_eq!(text_parser.consume_char(), '<');
     // Assert that the position is correctly updated to 1 after consuming the character
-    assert_eq!(parser.position, 1);
+    assert_eq!(text_parser.position, 1);
 
-    parser.position = 3;
+    text_parser.position = 3;
     // Assert that the consume_char method correctly consumes only the character 'H'
     // and returns the consumed characters as a string
-    assert_eq!(parser.consume_char(), 'H');
+    assert_eq!(text_parser.consume_char(), 'H');
     // Assert that the position is correctly updated to 4 after consuming the character
-    assert_eq!(parser.position, 4);
+    assert_eq!(text_parser.position, 4);
 
-    parser.position = 8;
+    text_parser.position = 8;
     // Assert that the consume_char method correctly consumes only the character ' '
     // and returns the consumed characters as a string
-    assert_eq!(parser.consume_char(), ' ');
+    assert_eq!(text_parser.consume_char(), ' ');
     // Assert that the position is correctly updated to 9 after consuming the character
-    assert_eq!(parser.position, 9);
+    assert_eq!(text_parser.position, 9);
   }
 
   // Test the method consume_while of the TextParser struct implementation
   #[test]
   fn test_consume_while() {
-    let mut parser: TextParser = TextParser::new(3, "<p>Hello World!</p>".to_string());
+    let mut text_parser: TextParser = TextParser::new(3, "<p>Hello World!</p>".to_string());
 
     // Assert that the consume_while method correctly consumes only the alphabetic characters "Hello"
     // and returns the consumed characters as a string
