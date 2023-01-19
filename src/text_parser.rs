@@ -83,24 +83,26 @@ mod tests {
   // Test the method starts_with of the TextParser struct implementation
   #[test]
   fn test_starts_with() {
-    let parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
+    let mut text_parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
 
-    // Test that input starts (or not) with specific string from position 0
-    assert!(parser.starts_with("<"));
-    assert!(parser.starts_with("<p>"));
-    assert!(!parser.starts_with("Hello"));
-    assert!(!parser.starts_with("!"));
+    // Assert that the starts_with method returns true because the input starts with the string "<"
+    assert!(text_parser.starts_with("<"));
+    // Assert that the starts_with method returns true because the input starts with the string "<p>"
+    assert!(text_parser.starts_with("<p>"));
+    // Assert that the starts_with method returns false because the input doesn't start with the string "Hello"
+    assert!(!text_parser.starts_with("Hello"));
+    // Assert that the starts_with method returns false because the input doesn't start with the string "!"
+    assert!(!text_parser.starts_with("!"));
 
-    let parser: TextParser = TextParser {
-      position: 3,
-      input: "<p>Hello World!</p>".to_string(),
-    };
-    // Test that input starts (or not) with specific string from position 4
-    assert!(!parser.starts_with("<"));
-    assert!(!parser.starts_with("<p>"));
-    assert!(parser.starts_with("H"));
-    assert!(parser.starts_with("Hello"));
-    assert!(!parser.starts_with("!"));
+    text_parser.increment_position(3);
+    // Assert that the starts_with method returns false because the input doesn't start with the string "<"
+    assert!(!text_parser.starts_with("<"));
+    // Assert that the starts_with method returns false because the input doesn't start with the string "<p>"
+    assert!(!text_parser.starts_with("<p>"));
+    // Assert that the starts_with method returns true because the input starts with the string "H"
+    assert!(text_parser.starts_with("H"));
+    // Assert that the starts_with method returns true because the input starts with the string "Hello"
+    assert!(text_parser.starts_with("Hello"));
   }
 
   // Test the method eof of the TextParser struct implementation
@@ -108,24 +110,16 @@ mod tests {
   fn test_eof() {
     let parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
 
-    // Test end of file for position 0
-    assert_eq!(parser.eof(), false);
+    // Assert that the eof method returns false because the current position is not at the end of the input string
+    assert_eq!(text_parser.eof(), false);
 
-    let parser: TextParser = TextParser {
-      position: 5,
-      input: "<p>Hello World!</p>".to_string(),
-    };
+    text_parser.increment_position(5);
+    // Assert that the eof method returns false because the current position is not at the end of the input string
+    assert_eq!(text_parser.eof(), false);
 
-    // Test end of file for position 5
-    assert_eq!(parser.eof(), false);
-
-    let parser: TextParser = TextParser {
-      position: 19,
-      input: "<p>Hello World!</p>".to_string(),
-    };
-
-    // Test end of file for position 21
-    assert_eq!(parser.eof(), true);
+    text_parser.increment_position(19);
+    // Assert that the eof method returns true because the current position is at the end of the input string
+    assert_eq!(text_parser.eof(), true);
   }
 
   // Test the method consume_char of the TextParser struct implementation
@@ -160,21 +154,21 @@ mod tests {
     let mut parser: TextParser = TextParser::new(3, "<p>Hello World!</p>".to_string());
 
     // Assert that the consume_while method correctly consumes only the alphabetic characters "Hello"
-    // because the next character ' ' is not alphabetic and returns the consumed characters as a string
-    assert_eq!(parser.consume_while(|c| c.is_alphabetic()), "Hello");
+    // and returns the consumed characters as a string
+    assert_eq!(text_parser.consume_while(|c| c.is_alphabetic()), "Hello");
     // Assert that the position is correctly updated to 8 after consuming the characters
-    assert_eq!(parser.position, 8);
+    assert_eq!(text_parser.position, 8);
 
     // Assert that the consume_while method correctly consumes only the whitespace character ' '
-    // because the next character 'W' is not a whitespace and returns the consumed characters as a string
-    assert_eq!(parser.consume_while(|c| c.is_whitespace()), " ");
+    // and returns the consumed character as a string
+    assert_eq!(text_parser.consume_while(|c| c.is_whitespace()), " ");
     // Assert that the position is correctly updated to 9 after consuming the characters
-    assert_eq!(parser.position, 9);
+    assert_eq!(text_parser.position, 9);
 
     // Assert that the consume_while method correctly returns an empty string when no digits are found
-    // because the actual character is 'W'
-    assert_eq!(parser.consume_while(|c| c.is_digit(10)), "");
+    // and returns an empty character as a string
+    assert_eq!(text_parser.consume_while(|c| c.is_digit(10)), "");
     // Assert that the position is correctly updated to 9 after consuming the characters
-    assert_eq!(parser.position, 9);
+    assert_eq!(text_parser.position, 9);
   }
 }
