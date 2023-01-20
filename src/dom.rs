@@ -128,31 +128,37 @@ macro_rules! hashmap {
 mod tests {
   use crate::dom::*;
 
-  // Test the associated function text() of the Node struct implementation
+  // Test the function text of the Node struct implementation
   #[test]
   fn test_text() {
     let node: Node = Node::text("Hello World!".to_string());
 
-    // Test the node type Text
+    // Assert that the node_type method correctly returns the text "Hello World!"
     assert_eq!(node.node_type(), NodeType::Text("Hello World!".to_string()));
-    // Test the children
+    // Assert that the children method correctly returns no elements
     assert_eq!(node.children(), Vec::new());
   }
 
-  // Test the associated function element() of the Node struct implementation
+  // Test the function element of the Node struct implementation
   #[test]
   fn test_element() {
+    // Node 2: <span class='text'>
+    let tag_name: String = String::from("span");
+    let attributes: AttributeMap = hashmap![String::from("class") => String::from("text")];
+    let children: Vec<Node> = vec![];
+    let node_2: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    // Node 1: <p class='paragraph'>
     let tag_name: String = String::from("p");
     let attributes: AttributeMap = hashmap![String::from("class") => String::from("paragraph")];
-    let children: Vec<Node> = vec![];
-    let node: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let children: Vec<Node> = vec![node_2];
+    let node_1: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
 
-    // Test the node type Element
+    // Assert that the node_type method correctly returns the NodeType (Element) with the correct ElementData (tag name and attributes).
     assert_eq!(
-      node.node_type(),
+      node_1.node_type(),
       NodeType::Element(ElementData::new(tag_name, attributes))
     );
-    // Test the children
-    assert_eq!(node.children(), children);
+    // Assert that the children method correctly returns the node_1 children
+    assert_eq!(node_1.children(), children);
   }
 }
