@@ -7,11 +7,7 @@ pub struct SimpleSelector {
 }
 
 impl SimpleSelector {
-  pub fn new(
-    tag_name: Option<String>,
-    id: Option<String>,
-    classes: Vec<String>,
-  ) -> SimpleSelector {
+  pub fn new(tag_name: Option<String>, id: Option<String>, classes: Vec<String>) -> SimpleSelector {
     SimpleSelector {
       tag_name,
       id,
@@ -44,13 +40,6 @@ impl Selector {
   }
 }
 
-pub enum Value {
-  Keyword(String),
-  Length(f32, Unit),
-  ColorValue(Color),
-  // insert more values here
-}
-
 #[derive(Copy, Clone, Debug)]
 pub enum Unit {
   Px,
@@ -63,11 +52,21 @@ impl PartialEq for Unit {
   }
 }
 
+#[derive(Debug)]
 pub struct Color {
   red: u8,
   green: u8,
   blue: u8,
   alpha: u8,
+}
+
+impl PartialEq for Color {
+  fn eq(&self, other: &Self) -> bool {
+    self.red == other.red
+      && self.green == other.green
+      && self.blue == other.blue
+      && self.alpha == other.alpha
+  }
 }
 
 impl Color {
@@ -77,6 +76,25 @@ impl Color {
       green,
       blue,
       alpha,
+    }
+  }
+}
+
+#[derive(Debug)]
+pub enum Value {
+  Keyword(String),
+  Length(f32, Unit),
+  ColorValue(Color),
+  // insert more values here
+}
+
+impl PartialEq for Value {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (Value::Keyword(a), Value::Keyword(b)) => a == b,
+      (Value::Length(a, b), Value::Length(c, d)) => a == c && b == d,
+      (Value::ColorValue(a), Value::ColorValue(b)) => a == b,
+      _ => false,
     }
   }
 }
