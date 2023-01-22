@@ -65,7 +65,7 @@ impl CSSParser {
       self.parse_hex_pair(),
       self.parse_hex_pair(),
       self.parse_hex_pair(),
-      255,
+      1,
     ))
   }
 
@@ -180,10 +180,19 @@ impl CSSParser {
 mod tests {
   use crate::css_parser::*;
 
+  // Test the method parse_identifier of the CSSParser struct implementation
+  #[test]
+  fn test_parse_identifier() {
+    let mut css_parser: CSSParser = CSSParser::new(11, ".container{width:100px;}".to_string());
+
+    // Assert that the parse_value method correctly parses the string "width"
+    assert_eq!(css_parser.parse_identifier(), "width");
+  }
+
   // Test the method parse_unit of the CSSParser struct implementation
   #[test]
   fn test_parse_unit() {
-    let mut css_parser: CSSParser = CSSParser::new(20, ".container{width:200px}".to_string());
+    let mut css_parser: CSSParser = CSSParser::new(20, ".container{width:200px;}".to_string());
 
     // Assert that the parse_float method correctly parses the unit "px"
     assert_eq!(css_parser.parse_unit(), css::Unit::Px);
@@ -192,22 +201,32 @@ mod tests {
   // Test the method parse_float of the CSSParser struct implementation
   #[test]
   fn test_parse_float() {
-    let mut css_parser: CSSParser = CSSParser::new(17, ".container{width:100.5px}".to_string());
+    let mut css_parser: CSSParser = CSSParser::new(17, ".container{width:100.5px;}".to_string());
 
     // Assert that the parse_float method correctly parses the float value "100.5"
     assert_eq!(css_parser.parse_float(), 100.5);
 
-    let mut css_parser: CSSParser = CSSParser::new(17, ".container{width:100px}".to_string());
+    let mut css_parser: CSSParser = CSSParser::new(17, ".container{width:100px;}".to_string());
 
     // Assert that the parse_float method correctly parses the float value "100"
     assert_eq!(css_parser.parse_float(), 100.0);
+  }
+
+  // Test the method parse_length of the CSSParser struct implementation
+  #[test]
+  fn test_parse_length() {
+    let mut css_parser: CSSParser = CSSParser::new(17, ".container{width:100.5px;}".to_string());
+    let unit: css::Value = css::Value::Length(100.5, css::Unit::Px);
+
+    // Assert that the parse_value method correctly parses the value "100.5" with unit "px"
+    assert_eq!(css_parser.parse_length(), unit);
   }
 
   // Test the method parse_hex_pair of the CSSParser struct implementation
   #[test]
   fn test_parse_hex_pair() {
     let mut css_parser: CSSParser =
-      CSSParser::new(23, ".container{background:#A3E4D7}".to_string());
+      CSSParser::new(23, ".container{background:#A3E4D7;}".to_string());
 
     // Assert that the parse_hex_pair method correctly parses the first hex pair "A3" as 163
     assert_eq!(css_parser.parse_hex_pair(), 163);
@@ -215,5 +234,39 @@ mod tests {
     assert_eq!(css_parser.parse_hex_pair(), 228);
     // Assert that the parse_hex_pair method correctly parses the third hex pair "D7" as 215
     assert_eq!(css_parser.parse_hex_pair(), 215);
+  }
+
+  // Test the method parse_color of the CSSParser struct implementation
+  #[test]
+  fn test_parse_color() {
+    let mut css_parser: CSSParser =
+      CSSParser::new(22, ".container{background:#A3E4D7;}".to_string());
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+
+    // Assert that the parse_color method correctly parses the color "A3E4D7"
+    assert_eq!(css_parser.parse_color(), color);
+  }
+
+  // Test the method parse_value of the CSSParser struct implementation
+  #[test]
+  fn test_parse_value() {
+    let mut css_parser: CSSParser = CSSParser::new(
+      11,
+      ".container{width:100px;background:#A3E4D7;}".to_string(),
+    );
+    let keyword: css::Value = css::Value::Keyword(String::from("width"));
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+
+    // Assert that the parse_value method correctly parses the keyword "width"
+    assert_eq!(css_parser.parse_value(), keyword);
+
+    css_parser.text_parser.increment_position(1);
+    // Assert that the parse_value method correctly parses the value "100" with unit "px"
+    assert_eq!(css_parser.parse_value(), unit);
+
+    css_parser.text_parser.increment_position(12);
+    // Assert that the parse_color method correctly parses the color "A3E4D7"
+    assert_eq!(css_parser.parse_value(), color);
   }
 }
