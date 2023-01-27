@@ -21,8 +21,8 @@ pub struct CSSParser {
 }
 
 impl CSSParser {
-  pub fn new(position: usize, input: String) -> CSSParser {
-    CSSParser {
+  pub fn new(position: usize, input: String) -> Self {
+    Self {
       text_parser: TextParser::new(position, input),
     }
   }

@@ -32,8 +32,8 @@ impl fmt::Display for ElementData {
 }
 
 impl ElementData {
-  pub fn new(tag_name: String, attributes: AttributeMap) -> ElementData {
-    ElementData {
+  pub fn new(tag_name: String, attributes: AttributeMap) -> Self {
+    Self {
       tag_name,
       attributes,
     }

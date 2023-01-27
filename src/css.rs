@@ -7,19 +7,22 @@ pub struct SimpleSelector {
 }
 
 impl SimpleSelector {
-  pub fn new(tag_name: Option<String>, id: Option<String>, classes: Vec<String>) -> SimpleSelector {
-    SimpleSelector {
+  pub fn new(tag_name: Option<String>, id: Option<String>, classes: Vec<String>) -> Self {
+    Self {
       tag_name,
       id,
       classes,
     }
   }
+
   pub fn set_tag_name(&mut self, tag_name: Option<String>) {
     self.tag_name = tag_name;
   }
+
   pub fn set_id(&mut self, id: Option<String>) {
     self.id = id;
   }
+
   pub fn add_class(&mut self, class: String) {
     self.classes.push(class);
   }
@@ -70,8 +73,8 @@ impl PartialEq for Color {
 }
 
 impl Color {
-  pub fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
-    Color {
+  pub fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
+    Self {
       red,
       green,
       blue,
@@ -105,8 +108,8 @@ pub struct Declaration {
 }
 
 impl Declaration {
-  pub fn new(name: String, value: Value) -> Declaration {
-    Declaration { name, value }
+  pub fn new(name: String, value: Value) -> Self {
+    Self { name, value }
   }
 }
 
@@ -116,8 +119,8 @@ pub struct Rule {
 }
 
 impl Rule {
-  pub fn new(selectors: Vec<Selector>, declarations: Vec<Declaration>) -> Rule {
-    Rule {
+  pub fn new(selectors: Vec<Selector>, declarations: Vec<Declaration>) -> Self {
+    Self {
       selectors,
       declarations,
     }
@@ -129,7 +132,7 @@ pub struct Stylesheet {
 }
 
 impl Stylesheet {
-  pub fn new(rules: Vec<Rule>) -> Stylesheet {
-    Stylesheet { rules }
+  pub fn new(rules: Vec<Rule>) -> Self {
+    Self { rules }
   }
 }

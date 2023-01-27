@@ -6,8 +6,8 @@ pub struct TextParser {
 }
 
 impl TextParser {
-  pub fn new(position: usize, input: String) -> TextParser {
-    TextParser { position, input }
+  pub fn new(position: usize, input: String) -> Self {
+    Self { position, input }
   }
 
   pub fn position(&self) -> usize {

@@ -13,8 +13,8 @@ pub struct HTMLParser {
 }
 
 impl HTMLParser {
-  pub fn new(position: usize, input: String) -> HTMLParser {
-    HTMLParser {
+  pub fn new(position: usize, input: String) -> Self {
+    Self {
       text_parser: TextParser::new(position, input),
     }
   }
