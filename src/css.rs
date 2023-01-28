@@ -1,9 +1,16 @@
 pub type Specificity = (usize, usize, usize);
 
+#[derive(Debug)]
 pub struct SimpleSelector {
   tag_name: Option<String>,
   id: Option<String>,
   classes: Vec<String>,
+}
+
+impl PartialEq for SimpleSelector {
+  fn eq(&self, other: &Self) -> bool {
+    self.tag_name == other.tag_name && self.id == other.id && self.classes == other.classes
+  }
 }
 
 impl SimpleSelector {
@@ -36,9 +43,9 @@ impl Selector {
   pub fn specificity(&self) -> Specificity {
     // http://www.w3.org/TR/selectors/#specificity
     let Selector::Simple(ref simple) = *self;
-    let a = simple.id.iter().count();
-    let b = simple.classes.len();
-    let c = simple.tag_name.iter().count();
+    let a: usize = simple.id.iter().count();
+    let b: usize = simple.classes.len();
+    let c: usize = simple.tag_name.iter().count();
     (a, b, c)
   }
 }
@@ -102,14 +109,24 @@ impl PartialEq for Value {
   }
 }
 
+#[derive(Debug)]
 pub struct Declaration {
   name: String,
   value: Value,
 }
 
+impl PartialEq for Declaration {
+  fn eq(&self, other: &Self) -> bool {
+    self.name == other.name && self.value == other.value
+  }
+}
+
 impl Declaration {
   pub fn new(name: String, value: Value) -> Self {
     Self { name, value }
+  }
+  pub fn name(&self) -> String {
+    self.name.clone()
   }
 }
 
