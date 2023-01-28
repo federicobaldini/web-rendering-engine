@@ -269,4 +269,18 @@ mod tests {
     // Assert that the parse_color method correctly parses the color "A3E4D7"
     assert_eq!(css_parser.parse_value(), color);
   }
+
+  // Test the method parse_declaration of the CSSParser struct implementation
+  #[test]
+  fn test_parse_declaration() {
+    let mut css_parser: CSSParser = CSSParser::new(
+      11,
+      ".container{width:100px;background:#A3E4D7;}".to_string(),
+    );
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let declaration: css::Declaration = css::Declaration::new("width".to_string(), unit);
+
+    // Assert that the parse_declaration method correctly parses the declaration "width: 100px;"
+    assert_eq!(css_parser.parse_declaration(), declaration);
+  }
 }
