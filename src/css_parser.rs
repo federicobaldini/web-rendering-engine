@@ -304,14 +304,15 @@ mod tests {
   // Test the method parse_simple_selector of the CSSParser struct implementation
   #[test]
   fn test_parse_simple_selector() {
-    let mut css_parser: CSSParser = CSSParser::new(0, "div#main-container.class1.class2{}".to_string());
-    let selector: css::SimpleSelector = css::SimpleSelector::new(
+    let mut css_parser: CSSParser =
+      CSSParser::new(0, "div#main-container.class1.class2{}".to_string());
+    let simple_selector: css::SimpleSelector = css::SimpleSelector::new(
       Some("div".to_string()),
       Some("main-container".to_string()),
       vec!["class1".to_string(), "class2".to_string()],
     );
 
-        // Assert that the parse_declarations method correctly parses the declarations "{width: 100px;background:#A3E4D7;}"
-    assert_eq!(css_parser.parse_simple_selector(), selector);
+    // Assert that the parse_declarations method correctly parses the simple selector "div#main-container.class1.class2"
+    assert_eq!(css_parser.parse_simple_selector(), simple_selector);
   }
 }
