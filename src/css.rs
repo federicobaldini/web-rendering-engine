@@ -35,8 +35,18 @@ impl SimpleSelector {
   }
 }
 
+#[derive(Debug)]
 pub enum Selector {
   Simple(SimpleSelector),
+}
+
+impl PartialEq for Selector {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (Selector::Simple(a), Selector::Simple(b)) => a == b,
+      _ => false,
+    }
+  }
 }
 
 impl Selector {
