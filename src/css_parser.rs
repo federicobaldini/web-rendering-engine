@@ -336,7 +336,7 @@ mod tests {
     let selector_1: css::Selector = css::Selector::Simple(simple_selector_1);
     let selector_2: css::Selector = css::Selector::Simple(simple_selector_2);
 
-    // Assert that the parse_declarations method correctly parses the selectors "div#main-container.class1.class2" and "h1#main-title.class3.class4"
+    // Assert that the parse_selectors method correctly parses the selectors "div#main-container.class1.class2" and "h1#main-title.class3.class4"
     assert_eq!(css_parser.parse_selectors(), vec![selector_1, selector_2]);
   }
 }
