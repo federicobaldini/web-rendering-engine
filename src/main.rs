@@ -12,5 +12,6 @@ fn main() {
   let _html_text_dom: Node = Node::text("Hello World!".to_string());
   let root_dom_node: Node = HTMLParser::parse("<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string());
   Node::print_node_tree(root_dom_node, 0);
-  let _css_stylesheet: css::Stylesheet = CSSParser::parse(".container{width:200px;}".to_string());
+  let _css_stylesheet: css::Stylesheet =
+    CSSParser::parse(".container-1{width:200px;}.container-2{background:#A3E4D7;}".to_string());
 }
