@@ -140,9 +140,16 @@ impl Declaration {
   }
 }
 
+#[derive(Debug)]
 pub struct Rule {
   selectors: Vec<Selector>,
   declarations: Vec<Declaration>,
+}
+
+impl PartialEq for Rule {
+  fn eq(&self, other: &Self) -> bool {
+    self.selectors == other.selectors && self.declarations == other.declarations
+  }
 }
 
 impl Rule {
