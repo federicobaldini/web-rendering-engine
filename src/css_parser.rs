@@ -341,4 +341,22 @@ mod tests {
     // Assert that the parse_selectors method correctly parses the selectors "div#main-container.class1.class2" and "h1#main-title.class3.class4"
     assert_eq!(css_parser.parse_selectors(), vec![selector_1, selector_2]);
   }
+
+  // Test the method parse_rule of the CSSParser struct implementation
+  #[test]
+  fn test_parse_rule() {
+    let mut css_parser: CSSParser = CSSParser::new(0, ".class1{width:100px;}".to_string());
+    // Selector
+    let simple_selector: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["class1".to_string()]);
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declaration
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let declaration: css::Declaration = css::Declaration::new("width".to_string(), unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(vec![selector], vec![declaration]);
+
+    // Assert that the parse_rule method correctly parses the selector and its declaration ".class1{width:100px;}"
+    assert_eq!(css_parser.parse_rule(), rule);
+  }
 }
