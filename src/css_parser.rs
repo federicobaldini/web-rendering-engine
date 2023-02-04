@@ -295,10 +295,12 @@ mod tests {
     let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit);
     let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
     let declaration_2: css::Declaration = css::Declaration::new("background".to_string(), color);
-    let declarations: Vec<css::Declaration> = vec![declaration_1, declaration_2];
 
     // Assert that the parse_declarations method correctly parses the declarations "{width: 100px;background:#A3E4D7;}"
-    assert_eq!(css_parser.parse_declarations(), declarations);
+    assert_eq!(
+      css_parser.parse_declarations(),
+      vec![declaration_1, declaration_2]
+    );
   }
 
   // Test the method parse_simple_selector of the CSSParser struct implementation
