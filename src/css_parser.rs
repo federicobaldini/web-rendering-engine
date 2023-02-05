@@ -359,4 +359,31 @@ mod tests {
     // Assert that the parse_rule method correctly parses the selector and its declaration ".class1{width:100px;}"
     assert_eq!(css_parser.parse_rule(), rule);
   }
+
+  // Test the method parse_rules of the CSSParser struct implementation
+  #[test]
+  fn test_parse_rules() {
+    let mut css_parser: CSSParser = CSSParser::new(
+      0,
+      ".class1{width:100px;}.class2{background:#A3E4D7;}".to_string(),
+    );
+    // Selectors
+    let simple_selector_1: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["class1".to_string()]);
+    let simple_selector_2: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["class2".to_string()]);
+    let selector_1: css::Selector = css::Selector::Simple(simple_selector_1);
+    let selector_2: css::Selector = css::Selector::Simple(simple_selector_2);
+    // Declarations
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit);
+    let declaration_2: css::Declaration = css::Declaration::new("background".to_string(), color);
+    // Rules
+    let rule_1: css::Rule = css::Rule::new(vec![selector_1], vec![declaration_1]);
+    let rule_2: css::Rule = css::Rule::new(vec![selector_2], vec![declaration_2]);
+
+    // Assert that the parse_rules method correctly parses the selectors and their declaration ".class1{width:100px;}.class2{background:#A3E4D7;}"
+    assert_eq!(css_parser.parse_rules(), vec![rule_1, rule_2]);
+  }
 }
