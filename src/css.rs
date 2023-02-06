@@ -50,6 +50,7 @@ impl PartialEq for Selector {
 }
 
 impl Selector {
+  // Specificity is one of the ways a rendering engine decides which style overrides the other in a conflict
   pub fn specificity(&self) -> Specificity {
     // http://www.w3.org/TR/selectors/#specificity
     let Selector::Simple(ref simple) = *self;
@@ -161,8 +162,15 @@ impl Rule {
   }
 }
 
+#[derive(Debug)]
 pub struct Stylesheet {
   rules: Vec<Rule>,
+}
+
+impl PartialEq for Stylesheet {
+  fn eq(&self, other: &Self) -> bool {
+    self.rules == other.rules
+  }
 }
 
 impl Stylesheet {
