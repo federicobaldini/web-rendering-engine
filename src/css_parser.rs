@@ -178,7 +178,7 @@ impl CSSParser {
 
 #[cfg(test)]
 mod tests {
-  use crate::css_parser::*;
+  use crate::{css::Stylesheet, css_parser::*};
 
   // Test the method parse_identifier of the CSSParser struct implementation
   #[test]
@@ -385,5 +385,39 @@ mod tests {
 
     // Assert that the parse_rules method correctly parses the selectors and their declaration ".class1{width:100px;}.class2{background:#A3E4D7;}"
     assert_eq!(css_parser.parse_rules(), vec![rule_1, rule_2]);
+  }
+
+  // Test the method parse of the CSSParser struct implementation
+  #[test]
+  fn test_parse() {
+    // Selectors
+    let simple_selector_1: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("main-container".to_string()),
+      vec!["class1".to_string()],
+    );
+    let simple_selector_2: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["class2".to_string()]);
+    let selector_1: css::Selector = css::Selector::Simple(simple_selector_1);
+    let selector_2: css::Selector = css::Selector::Simple(simple_selector_2);
+    // Declarations
+    let unit_1: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let unit_2: css::Value = css::Value::Length(200.0, css::Unit::Px);
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit_1);
+    let declaration_2: css::Declaration = css::Declaration::new("height".to_string(), unit_2);
+    let declaration_3: css::Declaration = css::Declaration::new("background".to_string(), color);
+    // Rules
+    let rule_1: css::Rule = css::Rule::new(vec![selector_1], vec![declaration_1]);
+    let rule_2: css::Rule = css::Rule::new(vec![selector_2], vec![declaration_2, declaration_3]);
+
+    // Assert that the parse method correctly parses ".class1{width:100px;}.class2{background:#A3E4D7;}"
+    assert_eq!(
+      CSSParser::parse(
+        "div#main-container.class1{width:100px;}.class2{height:200px;background:#A3E4D7;}"
+          .to_string()
+      ),
+      Stylesheet::new(vec![rule_1, rule_2])
+    );
   }
 }
