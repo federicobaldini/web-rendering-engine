@@ -53,8 +53,8 @@ impl CSSParser {
 
   // Parse two hexadecimal digits
   fn parse_hex_pair(&mut self) -> u8 {
-    let s: &str =
-      &self.text_parser.input()[self.text_parser.position()..self.text_parser.position() + 2];
+    let s: &str = &self.text_parser.input().clone()
+      [self.text_parser.position()..self.text_parser.position() + 2];
     self.text_parser.increment_position(2);
     u8::from_str_radix(s, 16).unwrap()
   }

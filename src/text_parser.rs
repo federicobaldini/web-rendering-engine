@@ -18,8 +18,8 @@ impl TextParser {
     self.position += value;
   }
 
-  pub fn input(&self) -> String {
-    self.input.clone()
+  pub fn input(&self) -> &String {
+    &self.input
   }
 
   // Read the current character without consuming it

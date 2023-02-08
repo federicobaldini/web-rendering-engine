@@ -22,6 +22,18 @@ impl SimpleSelector {
     }
   }
 
+  pub fn tag_name(&self) -> &Option<String> {
+    &self.tag_name
+  }
+
+  pub fn id(&self) -> &Option<String> {
+    &self.id
+  }
+
+  pub fn classes(&self) -> &Vec<String> {
+    &self.classes
+  }
+
   pub fn set_tag_name(&mut self, tag_name: Option<String>) {
     self.tag_name = tag_name;
   }
@@ -44,7 +56,6 @@ impl PartialEq for Selector {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (Selector::Simple(a), Selector::Simple(b)) => a == b,
-      _ => false,
     }
   }
 }
@@ -73,7 +84,7 @@ impl PartialEq for Unit {
   }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Color {
   red: u8,
   green: u8,
@@ -101,7 +112,7 @@ impl Color {
   }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Value {
   Keyword(String),
   Length(f32, Unit),
@@ -136,8 +147,13 @@ impl Declaration {
   pub fn new(name: String, value: Value) -> Self {
     Self { name, value }
   }
-  pub fn name(&self) -> String {
-    self.name.clone()
+
+  pub fn name(&self) -> &String {
+    &&self.name
+  }
+
+  pub fn value(&self) -> &Value {
+    &self.value
   }
 }
 
@@ -160,6 +176,14 @@ impl Rule {
       declarations,
     }
   }
+
+  pub fn selectors(&self) -> &Vec<Selector> {
+    &self.selectors
+  }
+
+  pub fn declarations(&self) -> &Vec<Declaration> {
+    &self.declarations
+  }
 }
 
 #[derive(Debug)]
@@ -176,5 +200,9 @@ impl PartialEq for Stylesheet {
 impl Stylesheet {
   pub fn new(rules: Vec<Rule>) -> Self {
     Self { rules }
+  }
+
+  pub fn rules(&self) -> &Vec<Rule> {
+    &self.rules
   }
 }

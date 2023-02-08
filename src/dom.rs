@@ -3,7 +3,7 @@
  * - Extend NodeType to include additional types like comment nodes;
  */
 use std::{
-  collections::HashMap,
+  collections::{HashMap, HashSet},
   fmt::{self, Formatter, Result},
 };
 
@@ -38,11 +38,15 @@ impl ElementData {
       attributes,
     }
   }
-  pub fn tag_name(&self) -> String {
-    self.tag_name.clone()
+
+  pub fn tag_name(&self) -> &String {
+    &self.tag_name
   }
-  pub fn attributes(&self) -> AttributeMap {
-    self.attributes.clone()
+
+  pub fn attributes(&self) -> &AttributeMap {
+    &self.attributes
+  }
+  }
   }
 }
 
@@ -61,11 +65,12 @@ pub struct Node {
 }
 
 impl Node {
-  pub fn children(&self) -> Vec<Node> {
-    self.children.clone()
+  pub fn children(&self) -> &Vec<Node> {
+    &self.children
   }
-  pub fn node_type(&self) -> NodeType {
-    self.node_type.clone()
+
+  pub fn node_type(&self) -> &NodeType {
+    &self.node_type
   }
 }
 
@@ -134,31 +139,34 @@ mod tests {
     let node: Node = Node::text("Hello World!".to_string());
 
     // Assert that the node_type method correctly returns the text "Hello World!"
-    assert_eq!(node.node_type(), NodeType::Text("Hello World!".to_string()));
+    assert_eq!(
+      *node.node_type(),
+      NodeType::Text("Hello World!".to_string())
+    );
     // Assert that the children method correctly returns no elements
-    assert_eq!(node.children(), Vec::new());
+    assert_eq!(*node.children(), Vec::new());
   }
 
   // Test the function element of the Node struct implementation
   #[test]
   fn test_element() {
     // Node 2: <span class='text'>
-    let tag_name: String = String::from("span");
-    let attributes: AttributeMap = hashmap![String::from("class") => String::from("text")];
-    let children: Vec<Node> = vec![];
-    let node_2: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let tag_name_2: String = String::from("span");
+    let attributes_2: AttributeMap = hashmap![String::from("class") => String::from("text")];
+    let children_2: Vec<Node> = vec![];
+    let node_2: Node = Node::element(tag_name_2, attributes_2, children_2);
     // Node 1: <p class='paragraph'>
-    let tag_name: String = String::from("p");
-    let attributes: AttributeMap = hashmap![String::from("class") => String::from("paragraph")];
-    let children: Vec<Node> = vec![node_2];
-    let node_1: Node = Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let tag_name_1: String = String::from("p");
+    let attributes_1: AttributeMap = hashmap![String::from("class") => String::from("paragraph")];
+    let children_1: Vec<Node> = vec![node_2];
+    let node_1: Node = Node::element(tag_name_1.clone(), attributes_1.clone(), children_1.clone());
 
     // Assert that the node_type method correctly returns the NodeType (Element) with the correct ElementData (tag name and attributes).
     assert_eq!(
-      node_1.node_type(),
-      NodeType::Element(ElementData::new(tag_name, attributes))
+      *node_1.node_type(),
+      NodeType::Element(ElementData::new(tag_name_1, attributes_1))
     );
     // Assert that the children method correctly returns the node_1 children
-    assert_eq!(node_1.children(), children);
+    assert_eq!(*node_1.children(), children_1);
   }
 }

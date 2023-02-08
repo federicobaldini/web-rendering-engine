@@ -150,8 +150,7 @@ mod tests {
     let attributes: dom::AttributeMap =
       hashmap![String::from("class") => String::from("paragraph")];
     let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
-    let node: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let node: dom::Node = dom::Node::element(tag_name, attributes, children);
 
     // Assert that the parse_element method correctly parses the element "<p class='paragraph'>Hello World!</p>"
     assert_eq!(html_parser.parse_element(), node);
@@ -172,8 +171,7 @@ mod tests {
     let attributes: dom::AttributeMap =
       hashmap![String::from("class") => String::from("paragraph")];
     let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
-    let node: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let node: dom::Node = dom::Node::element(tag_name, attributes, children);
 
     // Assert that the parse_element method correctly parses the element "<p class='paragraph'>Hello World!</p>"
     assert_eq!(html_parser.parse_node(), node);
@@ -223,26 +221,23 @@ mod tests {
       "<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string(),
     );
     // Node 1: <div class='container-1'>
-    let tag_name: String = String::from("div");
-    let attributes: dom::AttributeMap =
+    let tag_name_1: String = String::from("div");
+    let attributes_1: dom::AttributeMap =
       hashmap![String::from("class") => String::from("container-1")];
-    let children: Vec<dom::Node> = vec![];
-    let node_1: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let children_1: Vec<dom::Node> = vec![];
+    let node_1: dom::Node = dom::Node::element(tag_name_1, attributes_1, children_1);
     // Node 3: <p class='paragraph'>
-    let tag_name: String = String::from("p");
-    let attributes: dom::AttributeMap =
+    let tag_name_3: String = String::from("p");
+    let attributes_3: dom::AttributeMap =
       hashmap![String::from("class") => String::from("paragraph")];
-    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
-    let node_3: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let children_3: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node_3: dom::Node = dom::Node::element(tag_name_3, attributes_3, children_3);
     // Node 2: <div class='container-2'>
-    let tag_name: String = String::from("div");
-    let attributes: dom::AttributeMap =
+    let tag_name_2: String = String::from("div");
+    let attributes_2: dom::AttributeMap =
       hashmap![String::from("class") => String::from("container-2")];
-    let children: Vec<dom::Node> = vec![node_3];
-    let node_2: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let children_2: Vec<dom::Node> = vec![node_3];
+    let node_2: dom::Node = dom::Node::element(tag_name_2, attributes_2, children_2);
 
     // Assert that the parse_nodes method correctly parses the nested and sibling nodes: node_1, node_2.node_3
     assert_eq!(html_parser.parse_nodes(), vec![node_1, node_2]);
@@ -252,32 +247,28 @@ mod tests {
   #[test]
   fn test_parse() {
     // Node 2: <div class='container-1'>
-    let tag_name: String = String::from("div");
-    let attributes: dom::AttributeMap =
+    let tag_name_2: String = String::from("div");
+    let attributes_2: dom::AttributeMap =
       hashmap![String::from("class") => String::from("container-1")];
-    let children: Vec<dom::Node> = vec![];
-    let node_2: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
-    // Node 2: <p class='paragraph'>
-    let tag_name: String = String::from("p");
-    let attributes: dom::AttributeMap =
+    let children_2: Vec<dom::Node> = vec![];
+    let node_2: dom::Node = dom::Node::element(tag_name_2, attributes_2, children_2);
+    // Node 4: <p class='paragraph'>
+    let tag_name_4: String = String::from("p");
+    let attributes_4: dom::AttributeMap =
       hashmap![String::from("class") => String::from("paragraph")];
-    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
-    let node_4: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let children_4: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node_4: dom::Node = dom::Node::element(tag_name_4, attributes_4, children_4);
     // Node 3: <div class='container-2'>
-    let tag_name: String = String::from("div");
-    let attributes: dom::AttributeMap =
+    let tag_name_3: String = String::from("div");
+    let attributes_3: dom::AttributeMap =
       hashmap![String::from("class") => String::from("container-2")];
-    let children: Vec<dom::Node> = vec![node_4];
-    let node_3: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let children_3: Vec<dom::Node> = vec![node_4];
+    let node_3: dom::Node = dom::Node::element(tag_name_3, attributes_3, children_3);
     // Node 1: <html>
-    let tag_name: String = String::from("html");
-    let attributes: dom::AttributeMap = hashmap![];
-    let children: Vec<dom::Node> = vec![node_2.clone(), node_3.clone()];
-    let node_1: dom::Node =
-      dom::Node::element(tag_name.clone(), attributes.clone(), children.clone());
+    let tag_name_1: String = String::from("html");
+    let attributes_1: dom::AttributeMap = hashmap![];
+    let children_1: Vec<dom::Node> = vec![node_2, node_3.clone()];
+    let node_1: dom::Node = dom::Node::element(tag_name_1, attributes_1, children_1);
 
     // Assert that the parse function correctly parses the nodes without a root element and then add the "html" tag as root element, returning it
     assert_eq!(HTMLParser::parse("<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string()), node_1);
