@@ -46,8 +46,6 @@ impl ElementData {
   pub fn attributes(&self) -> &AttributeMap {
     &self.attributes
   }
-  }
-  }
 }
 
 #[derive(Clone, PartialEq, Debug)]
