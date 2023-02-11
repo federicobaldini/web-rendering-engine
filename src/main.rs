@@ -2,6 +2,7 @@ mod css;
 mod css_parser;
 mod dom;
 mod html_parser;
+mod style;
 mod text_parser;
 
 use crate::css_parser::CSSParser;
