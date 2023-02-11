@@ -46,7 +46,16 @@ impl ElementData {
   pub fn attributes(&self) -> &AttributeMap {
     &self.attributes
   }
+
+  pub fn id(&self) -> Option<&String> {
+    self.attributes.get("id")
   }
+
+  pub fn classes(&self) -> HashSet<&str> {
+    match self.attributes.get("class") {
+      Some(classlist) => classlist.split(' ').collect(),
+      None => HashSet::new(),
+    }
   }
 }
 
