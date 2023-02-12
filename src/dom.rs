@@ -39,7 +39,7 @@ impl ElementData {
     }
   }
 
-  pub fn tag_name(&self) -> &String {
+  pub fn tag_name(&self) -> &str {
     &self.tag_name
   }
 

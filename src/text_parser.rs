@@ -18,7 +18,7 @@ impl TextParser {
     self.position += value;
   }
 
-  pub fn input(&self) -> &String {
+  pub fn input(&self) -> &str {
     &self.input
   }
 
