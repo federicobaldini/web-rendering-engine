@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use crate::css;
 use crate::dom;
@@ -13,4 +14,37 @@ pub struct StyledNode<'a> {
   node: &'a dom::Node, // pointer to a DOM node
   specified_values: PropertyMap,
   children: Vec<StyledNode<'a>>,
+}
+
+fn matches_simple_selector(element: &dom::ElementData, selector: &css::SimpleSelector) -> bool {
+  // Check type selector
+  if selector
+    .tag_name()
+    .iter()
+    .any(|name| *element.tag_name() != *name)
+  {
+    return false;
+  }
+
+  // Check ID selector
+  if selector
+    .id()
+    .iter()
+    .any(|id: &String| element.id() != Some(id))
+  {
+    return false;
+  }
+
+  // Check class selectors
+  let element_classes: HashSet<&str> = element.classes();
+  if selector
+    .classes()
+    .iter()
+    .any(|class: &String| !element_classes.contains(&**class))
+  {
+    return false;
+  }
+
+  // We didn't find any non-matching selector components.
+  return true;
 }
