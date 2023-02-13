@@ -110,7 +110,7 @@ impl Node {
   pub fn print_node_tree(node: Node, indent: usize) {
     match node.node_type {
       NodeType::Text(text) => {
-        // Indentation of `indent` spaces before the next argument
+        // Indentation of 'indent' spaces before the next argument
         println!("{:spaces$}{}", "", text, spaces = indent);
       }
       NodeType::Element(element) => {

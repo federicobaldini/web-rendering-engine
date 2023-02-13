@@ -46,7 +46,7 @@ impl TextParser {
     return current_char;
   }
 
-  // Consume characters until `test` returns false
+  // Consume characters until 'test' returns false
   pub fn consume_while<F>(&mut self, test: F) -> String
   where
     F: Fn(char) -> bool,

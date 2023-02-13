@@ -77,7 +77,7 @@ impl CSSParser {
     }
   }
 
-  // Parse one `<property>: <value>;` declaration
+  // Parse one '<property>: <value>;' declaration
   fn parse_declaration(&mut self) -> css::Declaration {
     let property_name: String = self.parse_identifier();
     self.text_parser.consume_whitespace();
@@ -90,7 +90,7 @@ impl CSSParser {
     css::Declaration::new(property_name, value)
   }
 
-  // Parse a list of declarations enclosed in `{ ... }`
+  // Parse a list of declarations enclosed in '{ ... }'
   fn parse_declarations(&mut self) -> Vec<css::Declaration> {
     assert_eq!(self.text_parser.consume_char(), '{');
     let mut declarations: Vec<css::Declaration> = Vec::new();
@@ -105,7 +105,7 @@ impl CSSParser {
     declarations
   }
 
-  // Parse one simple selector, e.g.: `type#id.class1.class2.class3`
+  // Parse one simple selector, e.g.: 'type#id.class1.class2.class3'
   fn parse_simple_selector(&mut self) -> css::SimpleSelector {
     let mut selector: css::SimpleSelector = css::SimpleSelector::new(None, None, vec![]);
     while !self.text_parser.eof() {
@@ -151,7 +151,7 @@ impl CSSParser {
     return selectors;
   }
 
-  // Parse a rule set: `<selectors> { <declarations> }`
+  // Parse a rule set: '<selectors> { <declarations> }'
   fn parse_rule(&mut self) -> css::Rule {
     css::Rule::new(self.parse_selectors(), self.parse_declarations())
   }

@@ -1,6 +1,6 @@
 /**
  * Features to add:
- * - Manage HTML comments `<!-- Hi! -->`;
+ * - Manage HTML comments '<!-- Hi! -->';
  * - Create an invalid HTML file that causes the parser fail. Modify the parser to recover
  *   from the error and produce a DOM tree for the test file;
  */
