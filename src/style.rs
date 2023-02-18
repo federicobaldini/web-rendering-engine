@@ -48,3 +48,10 @@ fn matches_simple_selector(element: &dom::ElementData, selector: &css::SimpleSel
   // We didn't find any non-matching selector components
   return true;
 }
+
+// Selector matching:
+fn matches(element: &dom::ElementData, selector: &css::Selector) -> bool {
+  match *selector {
+    css::Selector::Simple(ref simple_selector) => matches_simple_selector(element, simple_selector),
+  }
+}
