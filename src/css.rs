@@ -1,6 +1,6 @@
 pub type Specificity = (usize, usize, usize);
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct SimpleSelector {
   tag_name: Option<String>,
   id: Option<String>,
@@ -47,7 +47,7 @@ impl SimpleSelector {
   }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Selector {
   Simple(SimpleSelector),
 }
@@ -131,7 +131,7 @@ impl PartialEq for Value {
   }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Declaration {
   name: String,
   value: Value,
@@ -157,7 +157,7 @@ impl Declaration {
   }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Rule {
   selectors: Vec<Selector>,
   declarations: Vec<Declaration>,
