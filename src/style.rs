@@ -4,9 +4,9 @@ use std::collections::HashSet;
 use crate::css;
 use crate::dom;
 
-// Map from CSS property names to values.
+// Map from CSS property names to values
 type PropertyMap = HashMap<String, css::Value>;
-// A single CSS rule and the specificity of its most specific matching selector.
+// A single CSS rule and the specificity of its most specific matching selector
 type MatchedRule<'a> = (css::Specificity, &'a css::Rule);
 
 // A node with associated style data.
@@ -45,6 +45,6 @@ fn matches_simple_selector(element: &dom::ElementData, selector: &css::SimpleSel
     return false;
   }
 
-  // We didn't find any non-matching selector components.
+  // We didn't find any non-matching selector components
   return true;
 }
