@@ -55,3 +55,13 @@ fn matches(element: &dom::ElementData, selector: &css::Selector) -> bool {
     css::Selector::Simple(ref simple_selector) => matches_simple_selector(element, simple_selector),
   }
 }
+
+// If 'rule' matches 'element', return a 'MatchedRule'. Otherwise return 'None'
+fn match_rule<'a>(element: &dom::ElementData, rule: &'a css::Rule) -> Option<MatchedRule<'a>> {
+  // Find the first (highest-specificity) matching selector
+  rule
+    .selectors()
+    .iter()
+    .find(|selector| matches(element, *selector))
+    .map(|selector| (selector.specificity(), rule))
+}
