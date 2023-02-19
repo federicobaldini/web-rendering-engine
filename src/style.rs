@@ -156,3 +156,19 @@ fn specified_values(element: &dom::ElementData, stylesheet: &css::Stylesheet) ->
   }
   return values;
 }
+
+// Apply a stylesheet to an entire DOM tree, returning a StyledNode tree
+pub fn style_tree<'a>(root: &'a dom::Node, stylesheet: &'a css::Stylesheet) -> StyledNode<'a> {
+  StyledNode::new(
+    root,
+    match root.node_type() {
+      dom::NodeType::Element(ref elem) => specified_values(elem, stylesheet),
+      dom::NodeType::Text(_) => hashmap![],
+    },
+    root
+      .children()
+      .iter()
+      .map(|child| style_tree(child, stylesheet))
+      .collect(),
+  )
+}
