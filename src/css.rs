@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub type Specificity = (usize, usize, usize);
 
 #[derive(Clone, Debug)]
@@ -84,6 +86,15 @@ impl PartialEq for Unit {
   }
 }
 
+impl fmt::Display for Unit {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Unit::Px => write!(f, "px"),
+      // handle more variants here
+    }
+  }
+}
+
 #[derive(Clone, Debug)]
 pub struct Color {
   red: u8,
@@ -98,6 +109,16 @@ impl PartialEq for Color {
       && self.green == other.green
       && self.blue == other.blue
       && self.alpha == other.alpha
+  }
+}
+
+impl fmt::Display for Color {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(
+      f,
+      "rgba({},{},{},{})",
+      self.red, self.green, self.blue, self.alpha
+    )
   }
 }
 
@@ -127,6 +148,17 @@ impl PartialEq for Value {
       (Value::Length(a, b), Value::Length(c, d)) => a == c && b == d,
       (Value::ColorValue(a), Value::ColorValue(b)) => a == b,
       _ => false,
+    }
+  }
+}
+
+impl fmt::Display for Value {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Value::Keyword(s) => write!(f, "{}", s),
+      Value::Length(value, unit) => write!(f, "{}{}", value, unit),
+      Value::ColorValue(color) => write!(f, "{}", color),
+      // handle more variants here
     }
   }
 }
