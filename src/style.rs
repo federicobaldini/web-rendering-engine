@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::fmt;
 
 use crate::css;
 use crate::dom;
@@ -51,6 +52,14 @@ impl<'a> StyledNode<'a> {
     &self.children
   }
 
+  fn specified_values_to_string(&self) -> String {
+    let mut result = String::new();
+    for (key, value) in self.specified_values.iter() {
+      result.push_str(&format!("{}:{};", key, value));
+    }
+    result
+  }
+
   pub fn print_style_node_tree(style_node: &'a StyledNode, indent: usize) {
     match style_node.node().node_type() {
       dom::NodeType::Text(ref text) => {
@@ -59,10 +68,10 @@ impl<'a> StyledNode<'a> {
       dom::NodeType::Element(ref element) => {
         if *style_node.specified_values() != hashmap![] {
           println!(
-            "{:spaces$}<{} style='{:?}'>",
+            "{:spaces$}<{} style={:?}>",
             "",
             element.tag_name(),
-            style_node.specified_values(),
+            style_node.specified_values_to_string(),
             spaces = indent
           );
         } else {
