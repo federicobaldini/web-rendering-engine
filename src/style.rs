@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 use crate::css;
 use crate::dom;
+use crate::hashmap;
 
 // Map from CSS property names to values
 type PropertyMap = HashMap<String, css::Value>;
@@ -10,10 +11,70 @@ type PropertyMap = HashMap<String, css::Value>;
 type MatchedRule<'a> = (css::Specificity, &'a css::Rule);
 
 // A node with associated style data.
+#[derive(Clone, Debug)]
 pub struct StyledNode<'a> {
   node: &'a dom::Node, // pointer to a DOM node
   specified_values: PropertyMap,
   children: Vec<StyledNode<'a>>,
+}
+
+impl<'a> PartialEq for StyledNode<'a> {
+  fn eq(&self, other: &Self) -> bool {
+    self.node == other.node
+      && self.specified_values == other.specified_values
+      && self.children == other.children
+  }
+}
+
+impl<'a> StyledNode<'a> {
+  pub fn new(
+    node: &'a dom::Node,
+    specified_values: PropertyMap,
+    children: Vec<StyledNode<'a>>,
+  ) -> Self {
+    Self {
+      node,
+      specified_values,
+      children,
+    }
+  }
+
+  pub fn node(&self) -> &'a dom::Node {
+    self.node
+  }
+
+  pub fn specified_values(&self) -> &PropertyMap {
+    &self.specified_values
+  }
+
+  pub fn children(&self) -> &Vec<StyledNode<'a>> {
+    &self.children
+  }
+
+  pub fn print_style_node_tree(style_node: &'a StyledNode, indent: usize) {
+    match style_node.node().node_type() {
+      dom::NodeType::Text(ref text) => {
+        println!("{:spaces$}{}", "", text, spaces = indent);
+      }
+      dom::NodeType::Element(ref element) => {
+        if *style_node.specified_values() != hashmap![] {
+          println!(
+            "{:spaces$}<{} style='{:?}'>",
+            "",
+            element.tag_name(),
+            style_node.specified_values(),
+            spaces = indent
+          );
+        } else {
+          println!("{:spaces$}<{}>", "", element.tag_name(), spaces = indent);
+        }
+        for child in style_node.children() {
+          StyledNode::print_style_node_tree(child, indent + 2);
+        }
+        println!("{:spaces$}</{}>", "", element.tag_name(), spaces = indent);
+      }
+    }
+  }
 }
 
 fn matches_simple_selector(element: &dom::ElementData, selector: &css::SimpleSelector) -> bool {
