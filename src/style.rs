@@ -126,3 +126,18 @@ fn match_rule<'a>(element: &dom::ElementData, rule: &'a css::Rule) -> Option<Mat
     .find(|selector| matches(element, *selector))
     .map(|selector| (selector.specificity(), rule))
 }
+
+// Find all CSS rules that match the given element
+fn matching_rules<'a>(
+  element: &dom::ElementData,
+  stylesheet: &'a css::Stylesheet,
+) -> Vec<MatchedRule<'a>> {
+  // For now, we just do a linear scan of all the rules.  For large
+  // documents, it would be more efficient to store the rules in hash tables
+  // based on tag name, id, class, etc.
+  stylesheet
+    .rules()
+    .iter()
+    .filter_map(|rule: &css::Rule| match_rule(element, rule))
+    .collect()
+}
