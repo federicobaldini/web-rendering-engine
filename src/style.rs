@@ -141,3 +141,18 @@ fn matching_rules<'a>(
     .filter_map(|rule: &css::Rule| match_rule(element, rule))
     .collect()
 }
+
+// Apply styles to a single element, returning the specified values
+fn specified_values(element: &dom::ElementData, stylesheet: &css::Stylesheet) -> PropertyMap {
+  let mut values: HashMap<String, css::Value> = hashmap![];
+  let mut rules: Vec<((usize, usize, usize), &css::Rule)> = matching_rules(element, stylesheet);
+
+  // Go through the rules from lowest to highest specificity
+  rules.sort_by(|&(a, _), &(b, _)| a.cmp(&b));
+  for (_, rule) in rules {
+    for declaration in rule.declarations() {
+      values.insert(declaration.name().to_string(), declaration.value().clone());
+    }
+  }
+  return values;
+}
