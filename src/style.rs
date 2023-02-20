@@ -91,7 +91,7 @@ fn matches_simple_selector(element: &dom::ElementData, selector: &css::SimpleSel
   if selector
     .tag_name()
     .iter()
-    .any(|name| *element.tag_name() != *name)
+    .any(|name: &String| *element.tag_name() != *name)
   {
     return false;
   }
@@ -132,8 +132,8 @@ fn match_rule<'a>(element: &dom::ElementData, rule: &'a css::Rule) -> Option<Mat
   rule
     .selectors()
     .iter()
-    .find(|selector| matches(element, *selector))
-    .map(|selector| (selector.specificity(), rule))
+    .find(|selector: &&Selector| matches(element, *selector))
+    .map(|selector: &Selector| (selector.specificity(), rule))
 }
 
 // Find all CSS rules that match the given element
@@ -177,7 +177,57 @@ pub fn style_tree<'a>(root: &'a dom::Node, stylesheet: &'a css::Stylesheet) -> S
     root
       .children()
       .iter()
-      .map(|child| style_tree(child, stylesheet))
+      .map(|child: &dom::Node| style_tree(child, stylesheet))
       .collect(),
   )
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::hashmap;
+  use crate::style::*;
+
+  // Test the function matches_simple_selector
+  #[test]
+  fn test_matches_simple_selector() {
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap = hashmap![String::from("id") => String::from("container-id"), String::from("class") => String::from("container-class")];
+    let element: dom::ElementData = dom::ElementData::new(tag_name, attributes);
+    let simple_selector_1: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("container-id".to_string()),
+      vec!["container-class".to_string()],
+    );
+    let simple_selector_2: css::SimpleSelector = css::SimpleSelector::new(
+      Some("p".to_string()),
+      Some("container-id".to_string()),
+      vec!["container-class".to_string()],
+    );
+    let simple_selector_3: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("different-id".to_string()),
+      vec!["container-class".to_string()],
+    );
+    let simple_selector_4: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("container-id".to_string()),
+      vec!["different-class".to_string()],
+    );
+
+    // Assert that the matches_simple_selector function correctly match the element "<div id='container-id' class='container-class'></div>"
+    // with the simple selector "div#container-id.container-class"
+    assert_eq!(matches_simple_selector(&element, &simple_selector_1), true);
+
+    // Assert that the matches_simple_selector function does not match the element "<div id='container-id' class='container-class'></div>"
+    // with the simple selector "p#container-id.container-class"
+    assert_eq!(matches_simple_selector(&element, &simple_selector_2), false);
+
+    // Assert that the matches_simple_selector function does not match the element "<div id='container-id' class='container-class'></div>"
+    // with the simple selector "div#different-id.container-class"
+    assert_eq!(matches_simple_selector(&element, &simple_selector_3), false);
+
+    // Assert that the matches_simple_selector function does not match the element "<div id='container-id' class='container-class'></div>"
+    // with the simple selector "div#container-id.different-class"
+    assert_eq!(matches_simple_selector(&element, &simple_selector_4), false);
+  }
 }
