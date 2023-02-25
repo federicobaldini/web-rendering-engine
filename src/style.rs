@@ -257,4 +257,43 @@ mod tests {
     // and returns the expected specificity and rule
     assert_eq!(match_rule(&element, &rule), Some((specificity, &rule)));
   }
+
+  // Test the function matching_rules
+  #[test]
+  fn test_matching_rules() {
+    // Element
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap = hashmap![String::from("id") => String::from("container-id"), String::from("class") => String::from("container-class")];
+    let element: dom::ElementData = dom::ElementData::new(tag_name, attributes);
+    // Selectors
+    let simple_selector_1: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("container-id".to_string()),
+      vec!["container-class".to_string()],
+    );
+    let simple_selector_2: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["container-class".to_string()]);
+    let selector_1: css::Selector = css::Selector::Simple(simple_selector_1);
+    let selector_2: css::Selector = css::Selector::Simple(simple_selector_2);
+    // Declarations
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit);
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let declaration_2: css::Declaration = css::Declaration::new("background".to_string(), color);
+    // Rules
+    let rule_1: css::Rule = css::Rule::new(vec![selector_1], vec![declaration_1]);
+    let rule_2: css::Rule = css::Rule::new(vec![selector_2], vec![declaration_2]);
+    // Specificities
+    let specificity_1: css::Specificity = (1, 1, 1);
+    let specificity_2: css::Specificity = (0, 1, 0);
+    // Stylesheet
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule_1.clone(), rule_2.clone()]);
+
+    // Assert that the matching_rules function correctly matches the given selectors and declarations with the element data
+    // and returns the expected specificities and rules
+    assert_eq!(
+      matching_rules(&element, &stylesheet),
+      vec![(specificity_1, &rule_1), (specificity_2, &rule_2)]
+    );
+  }
 }
