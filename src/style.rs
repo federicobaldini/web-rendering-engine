@@ -230,4 +230,31 @@ mod tests {
     // with the simple selector "div#container-id.different-class"
     assert_eq!(matches_simple_selector(&element, &simple_selector_4), false);
   }
+
+  // Test the function match_rule
+  #[test]
+  fn test_match_rule() {
+    // Element
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap = hashmap![String::from("id") => String::from("container-id"), String::from("class") => String::from("container-class")];
+    let element: dom::ElementData = dom::ElementData::new(tag_name, attributes);
+    // Selector
+    let simple_selector: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("container-id".to_string()),
+      vec!["container-class".to_string()],
+    );
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declaration
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let declaration: css::Declaration = css::Declaration::new("width".to_string(), unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(vec![selector], vec![declaration]);
+    // Specificity
+    let specificity: css::Specificity = (1, 1, 1);
+
+    // Assert that the match_rule function correctly matches the given selector and declaration with the element data
+    // and returns the expected specificity and rule
+    assert_eq!(match_rule(&element, &rule), Some((specificity, &rule)));
+  }
 }
