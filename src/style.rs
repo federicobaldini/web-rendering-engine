@@ -296,4 +296,35 @@ mod tests {
       vec![(specificity_1, &rule_1), (specificity_2, &rule_2)]
     );
   }
+
+  // Test the function specified_values
+  #[test]
+  fn test_specified_values() {
+    // Element
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap = hashmap![String::from("id") => String::from("container-id"), String::from("class") => String::from("container-class")];
+    let element: dom::ElementData = dom::ElementData::new(tag_name, attributes);
+    // Selector
+    let simple_selector: css::SimpleSelector = css::SimpleSelector::new(
+      Some("div".to_string()),
+      Some("container-id".to_string()),
+      vec!["container-class".to_string()],
+    );
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declaration
+    let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
+    let declaration: css::Declaration = css::Declaration::new("width".to_string(), unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(vec![selector], vec![declaration]);
+    // Stylesheet
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule.clone()]);
+    // Values
+    let values: PropertyMap = specified_values(&element, &stylesheet);
+
+    // Assert that the values returned by the specified_values function, correctly have a "width" property set to 100px
+    assert_eq!(
+      values.get("width"),
+      Some(&css::Value::Length(100.0, css::Unit::Px))
+    );
+  }
 }
