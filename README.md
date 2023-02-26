@@ -1,6 +1,6 @@
-# minimal-browser
+# web-rendering-engine
 
-A minimal browser with a super simple rendering engine for HTML and CSS, using Rust.
+A simple web rendering engine for HTML and CSS, using Rust.
 
 Credit: https://github.com/mbrubeck and https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html
 
@@ -15,9 +15,9 @@ For the instalation guide [click here](https://www.rust-lang.org/learn/get-start
 Just clone the repo and use cargo to run the code as shown below 
 
 ```bash
-$ git clone https://github.com/federicobaldini/minimal-browser
-$ cd minimal-browser
-minimal-browser->$ cargo run 
+$ git clone https://github.com/federicobaldini/web-rendering-engine
+$ cd web-rendering-engine
+web-rendering-engine->$ cargo run 
 ```
 
 ## Test
@@ -25,5 +25,5 @@ minimal-browser->$ cargo run
 To run code tests, use the following command
 
 ```bash
-minimal-browser->$ cargo test 
+web-rendering-engine->$ cargo test 
 ```
