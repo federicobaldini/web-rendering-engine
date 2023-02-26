@@ -278,7 +278,7 @@ mod tests {
     // Declarations
     let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
     let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit);
-    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 255));
     let declaration_2: css::Declaration = css::Declaration::new("background".to_string(), color);
     // Rules
     let rule_1: css::Rule = css::Rule::new(vec![selector_1], vec![declaration_1]);
