@@ -71,3 +71,38 @@ impl Rectangle {
     self.height = height;
   }
 }
+
+#[derive(Copy, Clone, Default, Debug)]
+pub struct EdgeSizes {
+  top: f32,
+  right: f32,
+  bottom: f32,
+  left: f32,
+}
+
+impl PartialEq for EdgeSizes {
+  fn eq(&self, other: &Self) -> bool {
+    self.left == other.left
+      && self.right == other.right
+      && self.top == other.top
+      && self.bottom == other.bottom
+  }
+}
+
+impl EdgeSizes {
+  pub fn top(&self) -> f32 {
+    self.top
+  }
+
+  pub fn right(&self) -> f32 {
+    self.right
+  }
+
+  pub fn bottom(&self) -> f32 {
+    self.bottom
+  }
+
+  pub fn left(&self) -> f32 {
+    self.left
+  }
+}
