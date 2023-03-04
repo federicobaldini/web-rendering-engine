@@ -154,3 +154,21 @@ impl Dimensions {
     self.border_box().expanded_by(self.margin)
   }
 }
+
+#[derive(Clone, Debug)]
+pub enum BoxType<'a> {
+  BlockNode(&'a style::StyledNode<'a>),
+  InlineNode(&'a style::StyledNode<'a>),
+  AnonymousBlock,
+}
+
+impl<'a> PartialEq for BoxType<'a> {
+  fn eq(&self, other: &Self) -> bool {
+    match (self, other) {
+      (BoxType::BlockNode(a), BoxType::BlockNode(b)) => a == b,
+      (BoxType::InlineNode(a), BoxType::InlineNode(b)) => a == b,
+      (BoxType::AnonymousBlock, BoxType::AnonymousBlock) => true,
+      _ => false,
+    }
+  }
+}
