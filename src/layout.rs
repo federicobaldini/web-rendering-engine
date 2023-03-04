@@ -106,3 +106,51 @@ impl EdgeSizes {
     self.left
   }
 }
+
+#[derive(Copy, Clone, Default, Debug)]
+pub struct Dimensions {
+  // Position of the content area relative to the document origin:
+  content: Rectangle,
+  // Surrounding edges:
+  padding: EdgeSizes,
+  border: EdgeSizes,
+  margin: EdgeSizes,
+}
+
+impl PartialEq for Dimensions {
+  fn eq(&self, other: &Self) -> bool {
+    self.content == other.content
+      && self.padding == other.padding
+      && self.border == other.border
+      && self.margin == other.margin
+  }
+}
+
+impl Dimensions {
+  pub fn content(&self) -> &Rectangle {
+    &self.content
+  }
+
+  pub fn set_content(&mut self) -> &mut Rectangle {
+    &mut self.content
+  }
+
+  pub fn border(&self) -> &EdgeSizes {
+    &self.border
+  }
+
+  // The area covered by the content area plus its padding
+  pub fn padding_box(self) -> Rectangle {
+    self.content.expanded_by(self.padding)
+  }
+
+  // The area covered by the content area plus padding and borders
+  pub fn border_box(self) -> Rectangle {
+    self.padding_box().expanded_by(self.border)
+  }
+
+  // The area covered by the content area plus padding, borders, and margin
+  pub fn margin_box(self) -> Rectangle {
+    self.border_box().expanded_by(self.margin)
+  }
+}
