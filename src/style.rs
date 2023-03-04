@@ -405,7 +405,7 @@ mod tests {
       _ => {}
     }
 
-    // Check that the root node has no specified values
+    // Assert that the style_tree function correctly matches the style tree with the right style nodes
     assert_eq!(
       style_tree(&node_1, &stylesheet),
       StyledNode::new(
