@@ -65,7 +65,7 @@ impl CSSParser {
       self.parse_hex_pair(),
       self.parse_hex_pair(),
       self.parse_hex_pair(),
-      1,
+      255,
     ))
   }
 
@@ -241,7 +241,7 @@ mod tests {
   fn test_parse_color() {
     let mut css_parser: CSSParser =
       CSSParser::new(22, ".container{background:#A3E4D7;}".to_string());
-    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 255));
 
     // Assert that the parse_color method correctly parses the color "A3E4D7"
     assert_eq!(css_parser.parse_color(), color);
@@ -256,7 +256,7 @@ mod tests {
     );
     let keyword: css::Value = css::Value::Keyword(String::from("width"));
     let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
-    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 255));
 
     // Assert that the parse_value method correctly parses the keyword "width"
     assert_eq!(css_parser.parse_value(), keyword);
@@ -293,7 +293,7 @@ mod tests {
     );
     let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
     let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit);
-    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 255));
     let declaration_2: css::Declaration = css::Declaration::new("background".to_string(), color);
 
     // Assert that the parse_declarations method correctly parses the declarations "{width: 100px;background:#A3E4D7;}"
@@ -376,7 +376,7 @@ mod tests {
     let selector_2: css::Selector = css::Selector::Simple(simple_selector_2);
     // Declarations
     let unit: css::Value = css::Value::Length(100.0, css::Unit::Px);
-    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 255));
     let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit);
     let declaration_2: css::Declaration = css::Declaration::new("background".to_string(), color);
     // Rules
@@ -403,7 +403,7 @@ mod tests {
     // Declarations
     let unit_1: css::Value = css::Value::Length(100.0, css::Unit::Px);
     let unit_2: css::Value = css::Value::Length(200.0, css::Unit::Px);
-    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 1));
+    let color: css::Value = css::Value::ColorValue(css::Color::new(163, 228, 215, 255));
     let declaration_1: css::Declaration = css::Declaration::new("width".to_string(), unit_1);
     let declaration_2: css::Declaration = css::Declaration::new("height".to_string(), unit_2);
     let declaration_3: css::Declaration = css::Declaration::new("background".to_string(), color);
