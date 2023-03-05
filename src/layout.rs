@@ -90,6 +90,15 @@ impl PartialEq for EdgeSizes {
 }
 
 impl EdgeSizes {
+  pub fn new(top: f32, right: f32, bottom: f32, left: f32) -> Self {
+    Self {
+      top,
+      right,
+      bottom,
+      left,
+    }
+  }
+
   pub fn top(&self) -> f32 {
     self.top
   }
