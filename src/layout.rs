@@ -136,6 +136,15 @@ impl PartialEq for Dimensions {
 }
 
 impl Dimensions {
+  pub fn new(content: Rectangle, padding: EdgeSizes, border: EdgeSizes, margin: EdgeSizes) -> Self {
+    Self {
+      content,
+      padding,
+      border,
+      margin,
+    }
+  }
+
   pub fn content(&self) -> &Rectangle {
     &self.content
   }
