@@ -28,20 +28,20 @@ impl SimpleSelector {
     &self.tag_name
   }
 
-  pub fn id(&self) -> &Option<String> {
-    &self.id
-  }
-
-  pub fn classes(&self) -> &Vec<String> {
-    &self.classes
-  }
-
   pub fn set_tag_name(&mut self, tag_name: Option<String>) {
     self.tag_name = tag_name;
   }
 
+  pub fn id(&self) -> &Option<String> {
+    &self.id
+  }
+
   pub fn set_id(&mut self, id: Option<String>) {
     self.id = id;
+  }
+
+  pub fn classes(&self) -> &Vec<String> {
+    &self.classes
   }
 
   pub fn add_class(&mut self, class: String) {
