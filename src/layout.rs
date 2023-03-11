@@ -488,3 +488,30 @@ pub fn layout_tree<'a>(
   root_box.layout(containing_block);
   root_box
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::dom;
+  use crate::hashmap;
+  use crate::layout::*;
+  use crate::style;
+
+  // Test the method expanded_by of the Rectangle struct implementation
+  #[test]
+  fn test_expanded_by() {
+    let rectangle: Rectangle = Rectangle::new(10.0, 20.0, 30.0, 40.0);
+    let edge: EdgeSizes = EdgeSizes::new(15.0, 10.0, 20.0, 5.0);
+
+    // Assert that the expanded_by method correctly expands the rectangle by the given edge sizes and
+    // returns a new rectangle with the expected x, y, width, and height
+    let result: Rectangle = rectangle.expanded_by(edge);
+    // Assert that the resulting x coordinate is as expected
+    assert_eq!(result.x(), 5.0);
+    // Assert that the resulting y coordinate is as expected
+    assert_eq!(result.y(), 5.0);
+    // Assert that the resulting width is as expected
+    assert_eq!(result.width(), 45.0);
+    // Assert that the resulting height is as expected
+    assert_eq!(result.height(), 75.0);
+  }
+}
