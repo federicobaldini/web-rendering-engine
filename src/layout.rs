@@ -357,54 +357,52 @@ impl<'a> LayoutBox<'a> {
       }
     }
 
-    let dimensions: &mut Dimensions = &mut self.dimensions;
-    dimensions.content.width = width.to_px();
+    self.dimensions.content.width = width.to_px();
 
-    dimensions.padding.left = padding_left.to_px();
-    dimensions.padding.right = padding_right.to_px();
+    self.dimensions.padding.left = padding_left.to_px();
+    self.dimensions.padding.right = padding_right.to_px();
 
-    dimensions.border.left = border_left.to_px();
-    dimensions.border.right = border_right.to_px();
+    self.dimensions.border.left = border_left.to_px();
+    self.dimensions.border.right = border_right.to_px();
 
-    dimensions.margin.left = margin_left.to_px();
-    dimensions.margin.right = margin_right.to_px();
+    self.dimensions.margin.left = margin_left.to_px();
+    self.dimensions.margin.right = margin_right.to_px();
   }
 
-  /// Finish calculating the block's edge sizes, and position it within its containing block
-  /// http://www.w3.org/TR/CSS2/visudet.html#normal-block
-  /// Sets the vertical margin/padding/border dimensions, and the "x", "y" values
+  // Finish calculating the block's edge sizes, and position it within its containing block
+  // http://www.w3.org/TR/CSS2/visudet.html#normal-block
+  // Sets the vertical margin/padding/border dimensions, and the "x", "y" values
   fn calculate_block_position(&mut self, containing_block: Dimensions) {
     let style: &StyledNode = self.get_style_node();
-    let dimensions: &mut Dimensions = &mut self.dimensions;
 
     // margin, border, and padding have initial value 0
     let zero: css::Value = css::Value::Length(0.0, css::Unit::Px);
 
     // If margin-top or margin-bottom is "auto", the used value is zero
-    dimensions.margin.top = style.lookup("margin-top", "margin", &zero).to_px();
-    dimensions.margin.bottom = style.lookup("margin-bottom", "margin", &zero).to_px();
+    self.dimensions.margin.top = style.lookup("margin-top", "margin", &zero).to_px();
+    self.dimensions.margin.bottom = style.lookup("margin-bottom", "margin", &zero).to_px();
 
-    dimensions.border.top = style
+    self.dimensions.border.top = style
       .lookup("border-top-width", "border-width", &zero)
       .to_px();
-    dimensions.border.bottom = style
+    self.dimensions.border.bottom = style
       .lookup("border-bottom-width", "border-width", &zero)
       .to_px();
 
-    dimensions.padding.top = style.lookup("padding-top", "padding", &zero).to_px();
-    dimensions.padding.bottom = style.lookup("padding-bottom", "padding", &zero).to_px();
+    self.dimensions.padding.top = style.lookup("padding-top", "padding", &zero).to_px();
+    self.dimensions.padding.bottom = style.lookup("padding-bottom", "padding", &zero).to_px();
 
-    dimensions.content.x = containing_block.content.x
-      + dimensions.margin.left
-      + dimensions.border.left
-      + dimensions.padding.left;
+    self.dimensions.content.x = containing_block.content.x
+      + self.dimensions.margin.left
+      + self.dimensions.border.left
+      + self.dimensions.padding.left;
 
     // Position the box below all the previous boxes in the container
-    dimensions.content.y = containing_block.content.height
+    self.dimensions.content.y = containing_block.content.height
       + containing_block.content.y
-      + dimensions.margin.top
-      + dimensions.border.top
-      + dimensions.padding.top;
+      + self.dimensions.margin.top
+      + self.dimensions.border.top
+      + self.dimensions.padding.top;
   }
 
   // Lay out the block's children within its content area
