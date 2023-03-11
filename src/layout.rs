@@ -153,8 +153,16 @@ impl Dimensions {
     &mut self.content
   }
 
+  pub fn padding(&self) -> &EdgeSizes {
+    &self.padding
+  }
+
   pub fn border(&self) -> &EdgeSizes {
     &self.border
+  }
+
+  pub fn margin(&self) -> &EdgeSizes {
+    &self.margin
   }
 
   // The area covered by the content area plus its padding
