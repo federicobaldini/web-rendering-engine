@@ -408,11 +408,11 @@ impl<'a> LayoutBox<'a> {
   // Lay out the block's children within its content area
   // Sets "self.dimensions.height" to the total content height
   fn layout_block_children(&mut self) {
-    let dimensions: &mut Dimensions = &mut self.dimensions;
     for child in &mut self.children {
-      child.layout(*dimensions);
+      child.layout(self.dimensions);
       // Increment the height so each child is laid out below the previous one
-      dimensions.content.height = dimensions.content.height + child.dimensions.margin_box().height;
+      self.dimensions.content.height =
+        self.dimensions.content.height + child.dimensions.margin_box().height();
     }
   }
 
@@ -420,8 +420,8 @@ impl<'a> LayoutBox<'a> {
   fn calculate_block_height(&mut self) {
     // If the height is set to an explicit length, use that exact length
     // Otherwise, just keep the value set by "layout_block_children"
-    if let Some(css::Value::Length(h, css::Unit::Px)) = self.get_style_node().value("height") {
-      self.dimensions.content.height = h;
+    if let Some(css::Value::Length(height, css::Unit::Px)) = self.get_style_node().value("height") {
+      self.dimensions.content.height = height;
     }
   }
 
