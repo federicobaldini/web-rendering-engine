@@ -578,7 +578,7 @@ mod tests {
     // and add it to the root box children
     assert_eq!(root_box.children().len(), 1);
     let result: &mut LayoutBox = root_box.get_inline_container();
-    assert!(matches!(result.box_type, BoxType::AnonymousBlock));
+    assert_eq!(result.box_type, BoxType::AnonymousBlock);
     assert_eq!(result.children().len(), 0);
     assert_eq!(root_box.children().len(), 2);
   }
