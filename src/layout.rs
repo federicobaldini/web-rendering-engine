@@ -582,4 +582,109 @@ mod tests {
     assert_eq!(result.children().len(), 0);
     assert_eq!(root_box.children().len(), 2);
   }
+
+  // Test the method calculate_block_width of the LayoutBox struct implementation
+  #[test]
+  fn test_calculate_block_width() {
+    // Node: <div class='container-1'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-1")];
+    let node: dom::Node = dom::Node::element(tag_name, attributes, vec![]);
+    // Selector
+    let simple_selector: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["container-1".to_string()]);
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declarations
+    let width_unit: css::Value = css::Value::Length(50.0, css::Unit::Px);
+    let width_declaration: css::Declaration =
+      css::Declaration::new("width".to_string(), width_unit);
+
+    let height_unit: css::Value = css::Value::Length(50.0, css::Unit::Px);
+    let height_declaration: css::Declaration =
+      css::Declaration::new("height".to_string(), height_unit);
+
+    let padding_left_unit: css::Value = css::Value::Length(5.0, css::Unit::Px);
+    let padding_left_declaration: css::Declaration =
+      css::Declaration::new("padding-left".to_string(), padding_left_unit);
+
+    let padding_right_unit: css::Value = css::Value::Length(5.0, css::Unit::Px);
+    let padding_right_declaration: css::Declaration =
+      css::Declaration::new("padding-right".to_string(), padding_right_unit);
+
+    let border_left_width_unit: css::Value = css::Value::Length(1.0, css::Unit::Px);
+    let border_left_width_declaration: css::Declaration =
+      css::Declaration::new("border-left-width".to_string(), border_left_width_unit);
+
+    let border_right_width_unit: css::Value = css::Value::Length(1.0, css::Unit::Px);
+    let border_right_width_declaration: css::Declaration =
+      css::Declaration::new("border-right-width".to_string(), border_right_width_unit);
+
+    let margin_left_unit: css::Value = css::Value::Length(10.0, css::Unit::Px);
+    let margin_left_declaration: css::Declaration =
+      css::Declaration::new("margin-left".to_string(), margin_left_unit);
+
+    let margin_right_unit: css::Value = css::Value::Length(10.0, css::Unit::Px);
+    let margin_right_declaration: css::Declaration =
+      css::Declaration::new("margin-right".to_string(), margin_right_unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(
+      vec![selector],
+      vec![
+        width_declaration,
+        height_declaration,
+        padding_left_declaration,
+        padding_right_declaration,
+        border_left_width_declaration,
+        border_right_width_declaration,
+        margin_left_declaration,
+        margin_right_declaration,
+      ],
+    );
+    // Stylesheet
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule.clone()]);
+    // Value
+    let mut values: style::PropertyMap = hashmap![];
+
+    match node.node_type() {
+      dom::NodeType::Element(element) => {
+        values = style::specified_values(&element, &stylesheet);
+      }
+      _ => {}
+    }
+    // StyleNode
+    let style_node: StyledNode = StyledNode::new(&node, values, vec![]);
+    // LayoutBox
+    let mut layout_box: LayoutBox = LayoutBox::new(BoxType::BlockNode(&style_node));
+    // Containing block
+    let content: Rectangle = Rectangle::new(0.0, 0.0, 100.0, 100.0);
+    let padding: EdgeSizes = EdgeSizes::new(0.0, 0.0, 0.0, 0.0);
+    let border: EdgeSizes = EdgeSizes::new(0.0, 0.0, 0.0, 0.0);
+    let margin: EdgeSizes = EdgeSizes::new(0.0, 0.0, 0.0, 0.0);
+
+    let containing_block: Dimensions = Dimensions::new(content, padding, border, margin);
+
+    // Assert that the calculate_block_width method correctly calculates the width of the layout box given the containing block
+    layout_box.calculate_block_width(containing_block);
+
+    // Assert that the resulting content width is as expected
+    assert_eq!(layout_box.dimensions().content().width(), 50.0);
+
+    // Assert that the resulting left padding is as expected
+    assert_eq!(layout_box.dimensions().padding().left(), 5.0);
+    // Assert that the resulting right padding is as expected
+    assert_eq!(layout_box.dimensions().padding().right(), 5.0);
+
+    // Assert that the resulting left border is as expected
+    assert_eq!(layout_box.dimensions().border().left(), 1.0);
+    // Assert that the resulting right border is as expected
+    assert_eq!(layout_box.dimensions().border().right(), 1.0);
+
+    // Assert that the resulting left margin is as expected
+    assert_eq!(layout_box.dimensions().margin().left(), 10.0);
+    // The margin-right from the stylesheet is 10.0px, but the total margin from
+    // the right side of the containing block is 28.0px
+    // Assert that the resulting right margin is as expected
+    assert_eq!(layout_box.dimensions().margin().right(), 28.0);
+  }
 }
