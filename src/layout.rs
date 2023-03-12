@@ -1,4 +1,10 @@
 // CSS box model. All sizes are in px
+/**
+ * Features to add:
+ * - Collapsing vertical margins;
+ * - Relative positioning; (https://www.w3.org/TR/CSS2/visuren.html#relative-positioning)
+ * - Parallelize the layout process, and measure the effect on performance;
+ */
 use crate::css;
 use crate::style;
 use crate::style::StyledNode;
