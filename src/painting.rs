@@ -30,3 +30,12 @@ fn get_color(layout_box: &layout::LayoutBox, name: &str) -> Option<css::Color> {
     layout::BoxType::AnonymousBlock => None,
   }
 }
+
+fn render_background(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
+  get_color(layout_box, "background").map(|color: css::Color| {
+    list.push(DisplayCommand::SolidColor(
+      color,
+      layout_box.dimensions().border_box(),
+    ))
+  });
+}
