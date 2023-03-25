@@ -93,3 +93,13 @@ fn render_borders(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
     ),
   ));
 }
+
+fn render_layout_box(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
+  render_background(list, layout_box);
+  render_borders(list, layout_box);
+  // TODO: render text
+
+  for child in layout_box.children() {
+    render_layout_box(list, child);
+  }
+}
