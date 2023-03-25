@@ -103,3 +103,9 @@ fn render_layout_box(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
     render_layout_box(list, child);
   }
 }
+
+fn build_display_list(layout_root: &layout::LayoutBox) -> DisplayList {
+  let mut list: Vec<DisplayCommand> = Vec::new();
+  render_layout_box(&mut list, layout_root);
+  return list;
+}
