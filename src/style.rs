@@ -17,6 +17,12 @@ pub type PropertyMap = HashMap<String, css::Value>;
 // A single CSS rule and the specificity of its most specific matching selector
 type MatchedRule<'a> = (css::Specificity, &'a css::Rule);
 
+pub enum Display {
+  Inline,
+  Block,
+  None,
+}
+
 // A node with associated style data.
 #[derive(Clone, Debug)]
 pub struct StyledNode<'a> {
