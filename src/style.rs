@@ -7,14 +7,13 @@
  */
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::fmt;
 
 use crate::css;
 use crate::dom;
 use crate::hashmap;
 
 // Map from CSS property names to values
-type PropertyMap = HashMap<String, css::Value>;
+pub type PropertyMap = HashMap<String, css::Value>;
 // A single CSS rule and the specificity of its most specific matching selector
 type MatchedRule<'a> = (css::Specificity, &'a css::Rule);
 
