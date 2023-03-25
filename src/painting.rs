@@ -39,3 +39,57 @@ fn render_background(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
     ))
   });
 }
+
+fn render_borders(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
+  let color: css::Color = match get_color(layout_box, "border-color") {
+    Some(color) => color,
+    _ => return, // bail out if no border-color is specified
+  };
+
+  let dimensions: &layout::Dimensions = layout_box.dimensions();
+  let border_box: layout::Rectangle = dimensions.border_box();
+
+  // Top border
+  list.push(DisplayCommand::SolidColor(
+    color,
+    layout::Rectangle::new(
+      border_box.x(),
+      border_box.y(),
+      border_box.width(),
+      dimensions.border().top(),
+    ),
+  ));
+
+  // Right border
+  list.push(DisplayCommand::SolidColor(
+    color,
+    layout::Rectangle::new(
+      border_box.x() + border_box.width() - dimensions.border().right(),
+      border_box.y(),
+      dimensions.border().right(),
+      border_box.height(),
+    ),
+  ));
+
+  // Bottom border
+  list.push(DisplayCommand::SolidColor(
+    color,
+    layout::Rectangle::new(
+      border_box.x(),
+      border_box.y() + border_box.height() - dimensions.border().bottom(),
+      border_box.width(),
+      dimensions.border().bottom(),
+    ),
+  ));
+
+  // Left border
+  list.push(DisplayCommand::SolidColor(
+    color,
+    layout::Rectangle::new(
+      border_box.x(),
+      border_box.y(),
+      dimensions.border().left(),
+      border_box.height(),
+    ),
+  ));
+}
