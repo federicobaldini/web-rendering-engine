@@ -138,8 +138,8 @@ fn match_rule<'a>(element: &dom::ElementData, rule: &'a css::Rule) -> Option<Mat
   rule
     .selectors()
     .iter()
-    .find(|selector: &&Selector| matches(element, *selector))
-    .map(|selector: &Selector| (selector.specificity(), rule))
+    .find(|selector: &&css::Selector| matches(element, *selector))
+    .map(|selector: &css::Selector| (selector.specificity(), rule))
 }
 
 // Find all CSS rules that match the given element
@@ -158,7 +158,7 @@ fn matching_rules<'a>(
 }
 
 // Apply styles to a single element, returning the specified values
-fn specified_values(element: &dom::ElementData, stylesheet: &css::Stylesheet) -> PropertyMap {
+pub fn specified_values(element: &dom::ElementData, stylesheet: &css::Stylesheet) -> PropertyMap {
   let mut values: HashMap<String, css::Value> = hashmap![];
   let mut rules: Vec<((usize, usize, usize), &css::Rule)> = matching_rules(element, stylesheet);
 
