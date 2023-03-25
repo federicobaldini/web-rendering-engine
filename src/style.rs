@@ -1,3 +1,10 @@
+/**
+ * Features to add:
+ * - Cascading;
+ * - Initial and/or computed values;
+ * - Inheritance;
+ * - The style attribute;
+ */
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
