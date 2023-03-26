@@ -119,3 +119,33 @@ impl Clamp for f32 {
     self.max(lower).min(upper)
   }
 }
+
+pub struct Canvas {
+  pixels: Vec<css::Color>,
+  width: usize,
+  height: usize,
+}
+
+impl Canvas {
+  // Create a blank canvas
+  fn new(width: usize, height: usize) -> Canvas {
+    let white = css::Color::new(255, 255, 255, 255);
+    return Canvas {
+      pixels: vec![white; width * height],
+      width,
+      height,
+    };
+  }
+
+  pub fn pixels(&self) -> &Vec<css::Color> {
+    &self.pixels
+  }
+
+  pub fn width(&self) -> usize {
+    self.width
+  }
+
+  pub fn height(&self) -> usize {
+    self.height
+  }
+}
