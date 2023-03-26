@@ -109,3 +109,13 @@ fn build_display_list(layout_root: &layout::LayoutBox) -> DisplayList {
   render_layout_box(&mut list, layout_root);
   return list;
 }
+
+trait Clamp {
+  fn clamp(self, lower: Self, upper: Self) -> Self;
+}
+
+impl Clamp for f32 {
+  fn clamp(self, lower: f32, upper: f32) -> f32 {
+    self.max(lower).min(upper)
+  }
+}
