@@ -687,4 +687,131 @@ mod tests {
     // Assert that the resulting right margin is as expected
     assert_eq!(layout_box.dimensions().margin().right(), 28.0);
   }
+
+  // Test the method calculate_block_position of the LayoutBox struct implementation
+  #[test]
+  fn test_calculate_block_position() {
+    // Node: <div class='container-1'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-1")];
+    let node: dom::Node = dom::Node::element(tag_name, attributes, vec![]);
+    // Selector
+    let simple_selector: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["container-1".to_string()]);
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declarations
+    let width_unit: css::Value = css::Value::Length(50.0, css::Unit::Px);
+    let width_declaration: css::Declaration =
+      css::Declaration::new("width".to_string(), width_unit);
+
+    let height_unit: css::Value = css::Value::Length(50.0, css::Unit::Px);
+    let height_declaration: css::Declaration =
+      css::Declaration::new("height".to_string(), height_unit);
+
+    let padding_top_unit: css::Value = css::Value::Length(5.0, css::Unit::Px);
+    let padding_top_declaration: css::Declaration =
+      css::Declaration::new("padding-top".to_string(), padding_top_unit);
+
+    let padding_bottom_unit: css::Value = css::Value::Length(5.0, css::Unit::Px);
+    let padding_bottom_declaration: css::Declaration =
+      css::Declaration::new("padding-bottom".to_string(), padding_bottom_unit);
+
+    let padding_left_unit: css::Value = css::Value::Length(5.0, css::Unit::Px);
+    let padding_left_declaration: css::Declaration =
+      css::Declaration::new("padding-left".to_string(), padding_left_unit);
+
+    let border_top_width_unit: css::Value = css::Value::Length(1.0, css::Unit::Px);
+    let border_top_width_declaration: css::Declaration =
+      css::Declaration::new("border-top-width".to_string(), border_top_width_unit);
+
+    let border_bottom_width_unit: css::Value = css::Value::Length(1.0, css::Unit::Px);
+    let border_bottom_width_declaration: css::Declaration =
+      css::Declaration::new("border-bottom-width".to_string(), border_bottom_width_unit);
+
+    let border_left_width_unit: css::Value = css::Value::Length(1.0, css::Unit::Px);
+    let border_left_width_declaration: css::Declaration =
+      css::Declaration::new("border-left-width".to_string(), border_left_width_unit);
+
+    let margin_top_unit: css::Value = css::Value::Length(10.0, css::Unit::Px);
+    let margin_top_declaration: css::Declaration =
+      css::Declaration::new("margin-top".to_string(), margin_top_unit);
+
+    let margin_bottom_unit: css::Value = css::Value::Length(10.0, css::Unit::Px);
+    let margin_bottom_declaration: css::Declaration =
+      css::Declaration::new("margin-bottom".to_string(), margin_bottom_unit);
+
+    let margin_left_unit: css::Value = css::Value::Length(10.0, css::Unit::Px);
+    let margin_left_declaration: css::Declaration =
+      css::Declaration::new("margin-left".to_string(), margin_left_unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(
+      vec![selector],
+      vec![
+        width_declaration,
+        height_declaration,
+        padding_top_declaration,
+        padding_bottom_declaration,
+        padding_left_declaration,
+        border_top_width_declaration,
+        border_bottom_width_declaration,
+        border_left_width_declaration,
+        margin_top_declaration,
+        margin_bottom_declaration,
+        margin_left_declaration,
+      ],
+    );
+    // Stylesheet
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule.clone()]);
+    // Value
+    let mut values: style::PropertyMap = hashmap![];
+
+    match node.node_type() {
+      dom::NodeType::Element(element) => {
+        values = style::specified_values(&element, &stylesheet);
+      }
+      _ => {}
+    }
+    // StyleNode
+    let style_node: StyledNode = StyledNode::new(&node, values, vec![]);
+    // LayoutBox
+    let mut layout_box: LayoutBox = LayoutBox::new(BoxType::BlockNode(&style_node));
+    // Containing block
+    let content: Rectangle = Rectangle::new(0.0, 0.0, 100.0, 100.0);
+    let padding: EdgeSizes = EdgeSizes::new(0.0, 0.0, 0.0, 0.0);
+    let border: EdgeSizes = EdgeSizes::new(0.0, 0.0, 0.0, 0.0);
+    let margin: EdgeSizes = EdgeSizes::new(0.0, 0.0, 0.0, 0.0);
+
+    let containing_block: Dimensions = Dimensions::new(content, padding, border, margin);
+
+    layout_box.calculate_block_width(containing_block);
+    // Assert that the calculate_block_position method correctly calculates the position of the layout box given the containing block
+    layout_box.calculate_block_position(containing_block);
+
+    // Assert that the resulting content x position is as expected
+    assert_eq!(layout_box.dimensions().content().x(), 16.0);
+    // Assert that the resulting content y position is as expected
+    assert_eq!(layout_box.dimensions().content().y(), 116.0);
+
+    // Assert that the resulting top padding is as expected
+    assert_eq!(layout_box.dimensions().padding().top(), 5.0);
+    // Assert that the resulting bottom padding is as expected
+    assert_eq!(layout_box.dimensions().padding().bottom(), 5.0);
+    // Assert that the resulting left padding is as expected
+    assert_eq!(layout_box.dimensions().padding().left(), 5.0);
+
+    // Assert that the resulting top border is as expected
+    assert_eq!(layout_box.dimensions().border().top(), 1.0);
+    // Assert that the resulting bottom border is as expected
+    assert_eq!(layout_box.dimensions().border().bottom(), 1.0);
+    // Assert that the resulting left border is as expected
+    assert_eq!(layout_box.dimensions().border().left(), 1.0);
+
+    // Assert that the resulting top margin is as expected
+    assert_eq!(layout_box.dimensions().margin().top(), 10.0);
+    // Assert that the resulting bottom margin is as expected
+    assert_eq!(layout_box.dimensions().margin().bottom(), 10.0);
+    // Assert that the resulting left margin is as expected
+    assert_eq!(layout_box.dimensions().margin().left(), 10.0);
+  }
 }
