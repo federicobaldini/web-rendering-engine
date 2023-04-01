@@ -222,7 +222,7 @@ impl<'a> PartialEq for LayoutBox<'a> {
 }
 
 impl<'a> LayoutBox<'a> {
-  fn new(box_type: BoxType<'a>) -> Self {
+  pub fn new(box_type: BoxType<'a>) -> Self {
     Self {
       box_type,
       dimensions: Default::default(),
@@ -432,7 +432,7 @@ impl<'a> LayoutBox<'a> {
   }
 
   // Lay out a block-level element and its descendants
-  fn layout_block(&mut self, containing_block: Dimensions) {
+  pub fn layout_block(&mut self, containing_block: Dimensions) {
     // Child width can depend on parent width, so we need to calculate this box's width before
     // laying out its children.
     self.calculate_block_width(containing_block);
