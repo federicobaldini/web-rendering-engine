@@ -179,6 +179,16 @@ impl fmt::Display for Value {
   }
 }
 
+impl Value {
+  // Return the size of a length in px, or zero for non-lengths.
+  pub fn to_px(&self) -> f32 {
+    match *self {
+      Value::Length(f, Unit::Px) => f,
+      _ => 0.0,
+    }
+  }
+}
+
 #[derive(Clone, Debug)]
 pub struct Declaration {
   name: String,
