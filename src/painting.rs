@@ -168,4 +168,15 @@ impl Canvas {
       }
     }
   }
+
+  // Paint a tree of LayoutBoxes to an array of pixels.
+  pub fn paint(layout_root: &layout::LayoutBox, bounds: layout::Rectangle) -> Canvas {
+    let display_list: Vec<DisplayCommand> = build_display_list(layout_root);
+    let mut canvas: Canvas = Canvas::new(bounds.width() as usize, bounds.height() as usize);
+    for item in display_list {
+      canvas.paint_item(&item);
+    }
+    canvas
+  }
+}
 }
