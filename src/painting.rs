@@ -148,4 +148,24 @@ impl Canvas {
   pub fn height(&self) -> usize {
     self.height
   }
+
+  fn paint_item(&mut self, item: &DisplayCommand) {
+    match item {
+      DisplayCommand::SolidColor(color, rectangle) => {
+        // Clip the rectangle to the canvas boundaries.
+        let x0: usize = rectangle.x().clamp(0.0, self.width as f32) as usize;
+        let y0: usize = rectangle.y().clamp(0.0, self.height as f32) as usize;
+        let x1: usize = (rectangle.x() + rectangle.width()).clamp(0.0, self.width as f32) as usize;
+        let y1: usize =
+          (rectangle.y() + rectangle.height()).clamp(0.0, self.height as f32) as usize;
+
+        for y in y0..y1 {
+          for x in x0..x1 {
+            // TODO: alpha compositing with existing pixel
+            self.pixels[x + y * self.width] = *color;
+          }
+        }
+      }
+    }
+  }
 }
