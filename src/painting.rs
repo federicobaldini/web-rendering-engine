@@ -43,7 +43,7 @@ fn render_background(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
 fn render_borders(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
   let color: css::Color = match get_color(layout_box, "border-color") {
     Some(color) => color,
-    _ => return, // bail out if no border-color is specified
+    _ => return, // fail out if no border-color is specified
   };
 
   let dimensions: &layout::Dimensions = layout_box.dimensions();
