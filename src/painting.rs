@@ -179,4 +179,12 @@ impl Canvas {
     canvas
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use crate::dom;
+  use crate::hashmap;
+  use crate::layout;
+  use crate::painting::*;
+  use crate::style;
 }
