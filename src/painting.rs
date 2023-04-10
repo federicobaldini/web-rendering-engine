@@ -187,4 +187,45 @@ mod tests {
   use crate::layout;
   use crate::painting::*;
   use crate::style;
+
+  // Test the function get_color
+  #[test]
+  fn test_get_color() {
+    // Node: <div class='container-1'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-1")];
+    let node: dom::Node = dom::Node::element(tag_name, attributes, vec![]);
+    // Selector
+    let simple_selector: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["container-1".to_string()]);
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declaration
+    let background_unit: css::Value = css::Value::ColorValue(css::Color::new(255, 0, 0, 255));
+    let background_declaration: css::Declaration =
+      css::Declaration::new("background".to_string(), background_unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(vec![selector], vec![background_declaration]);
+    // Stylesheet
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule.clone()]);
+    // Value
+    let mut values: style::PropertyMap = hashmap![];
+
+    match node.node_type() {
+      dom::NodeType::Element(element) => {
+        values = style::specified_values(&element, &stylesheet);
+      }
+      _ => {}
+    }
+    // StyleNode
+    let style_node: style::StyledNode = style::StyledNode::new(&node, values, vec![]);
+    // LayoutBox
+    let layout_box: layout::LayoutBox =
+      layout::LayoutBox::new(layout::BoxType::BlockNode(&style_node));
+
+    assert_eq!(
+      get_color(&layout_box, "background"),
+      Some(css::Color::new(255, 0, 0, 255))
+    );
+  }
 }
