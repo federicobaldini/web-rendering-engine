@@ -228,4 +228,54 @@ mod tests {
       Some(css::Color::new(255, 0, 0, 255))
     );
   }
+
+  // Test the function render_background
+  #[test]
+  fn test_render_background() {
+    // Node: <div class='container-1'>
+    let tag_name: String = String::from("div");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container-1")];
+    let node: dom::Node = dom::Node::element(tag_name, attributes, vec![]);
+    // Selector
+    let simple_selector: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["container-1".to_string()]);
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    // Declaration
+    let background_unit: css::Value = css::Value::ColorValue(css::Color::new(255, 0, 0, 255));
+    let background_declaration: css::Declaration =
+      css::Declaration::new("background".to_string(), background_unit);
+    // Rule
+    let rule: css::Rule = css::Rule::new(vec![selector], vec![background_declaration]);
+    // Stylesheet
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule.clone()]);
+    // Value
+    let mut values: style::PropertyMap = hashmap![];
+
+    match node.node_type() {
+      dom::NodeType::Element(element) => {
+        values = style::specified_values(&element, &stylesheet);
+      }
+      _ => {}
+    }
+    // StyleNode
+    let style_node: style::StyledNode = style::StyledNode::new(&node, values, vec![]);
+    // LayoutBox
+    let layout_box: layout::LayoutBox =
+      layout::LayoutBox::new(layout::BoxType::BlockNode(&style_node));
+    // Display list
+    let mut display_list: DisplayList = vec![];
+
+    // Assert that the render_background function correctly add the layout_box background and border box to the display_list
+    render_background(&mut display_list, &layout_box);
+
+    // Assert that the first element of the display list is a SolidColor DisplayCommand with the right color and border box
+    assert_eq!(
+      display_list[0],
+      DisplayCommand::SolidColor(
+        css::Color::new(255, 0, 0, 255),
+        layout_box.dimensions().border_box()
+      )
+    );
+  }
 }
