@@ -1,7 +1,3 @@
-/**
- * Features to add:
- * - Extend NodeType to include additional types like comment nodes;
- */
 use std::{
   collections::{HashMap, HashSet},
   fmt::{self, Formatter, Result},
@@ -62,6 +58,7 @@ impl ElementData {
 #[derive(Clone, PartialEq, Debug)]
 pub enum NodeType {
   Text(String),
+  Comment(String),
   Element(ElementData),
 }
 
@@ -107,11 +104,21 @@ impl Node {
     }
   }
 
+  pub fn comment(data: String) -> Node {
+    Node {
+      children: Vec::new(),
+      node_type: NodeType::Comment(data),
+    }
+  }
+
   pub fn print_node_tree(node: &Node, indent: usize) {
     match node.node_type() {
       NodeType::Text(text) => {
         // Indentation of 'indent' spaces before the next argument
         println!("{:spaces$}{}", "", text, spaces = indent);
+      }
+      NodeType::Comment(comment) => {
+        println!("{:spaces$}<!--{}-->", "", comment, spaces = indent);
       }
       NodeType::Element(element) => {
         println!("{:spaces$}{}", "", element, spaces = indent);
@@ -119,6 +126,20 @@ impl Node {
           Node::print_node_tree(child, indent + 2);
         }
         println!("{:spaces$}</{}>", "", element.tag_name(), spaces = indent);
+      }
+    }
+  }
+
+  pub fn print_only_text_from_node_tree(node: &Node) {
+    match node.node_type() {
+      NodeType::Text(text) => {
+        println!("{}\n", text);
+      }
+      NodeType::Comment(_) => {}
+      NodeType::Element(_) => {
+        for child in node.children() {
+          Node::print_only_text_from_node_tree(child);
+        }
       }
     }
   }
