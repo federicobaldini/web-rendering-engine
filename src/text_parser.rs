@@ -27,6 +27,11 @@ impl TextParser {
     self.input[self.position..].chars().next().unwrap()
   }
 
+  // Read the character from the current position to a given offset without consuming it
+  pub fn next_offset_char(&self, offset: usize) -> char {
+    self.input[self.position..].chars().nth(offset).unwrap()
+  }
+
   // Do the next characters start with the given string?
   pub fn starts_with(&self, s: &str) -> bool {
     self.input[self.position..].starts_with(s)
