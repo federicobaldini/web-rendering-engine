@@ -63,6 +63,21 @@ impl TextParser {
     return result;
   }
 
+  pub fn consume_until_match(&mut self, target: &str) -> String {
+    let mut result: String = String::new();
+    let mut target_found: bool = false;
+    let mut potential_match: &str = "";
+    while !self.eof() && !target_found {
+      potential_match = &self.input[self.position..self.position + target.len()];
+      if potential_match.starts_with(target) {
+        target_found = true;
+      } else {
+        result.push(self.consume_char());
+      }
+    }
+    return result;
+  }
+
   // Consume and discard zero or more whitespace characters
   pub fn consume_whitespace(&mut self) {
     self.consume_while(char::is_whitespace);
