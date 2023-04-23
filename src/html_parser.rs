@@ -1,6 +1,5 @@
 /**
  * Features to add:
- * - Manage HTML comments '<!-- Hi! -->';
  * - Create an invalid HTML file that causes the parser fail. Modify the parser to recover
  *   from the error and produce a DOM tree for the test file;
  */
@@ -27,6 +26,11 @@ impl HTMLParser {
     })
   }
 
+  // Parse a comment
+  fn parse_comment_content(&mut self) -> String {
+    self.text_parser.consume_until_match("-->")
+  }
+
   // Parse a text node
   fn parse_text(&mut self) -> dom::Node {
     dom::Node::text(self.text_parser.consume_while(|c: char| c != '<'))
@@ -34,28 +38,74 @@ impl HTMLParser {
 
   // Parse a single element, including its open tag, contents, and closing tag
   fn parse_element(&mut self) -> dom::Node {
+    let self_closing_tags_by_default: Vec<&str> = vec!["br", "img", "input", "meta", "link", "hr"];
+    let mut self_closing_tag_flag: bool = false;
+    let mut children: Vec<dom::Node> = vec![];
+
     // Opening tag
     assert!(self.text_parser.consume_char() == '<');
     let tag_name: String = self.parse_tag_name();
     let attributes: dom::AttributeMap = self.parse_attributes();
-    assert!(self.text_parser.consume_char() == '>');
 
-    // Contents
-    let children: Vec<dom::Node> = self.parse_nodes();
+    if self.text_parser.next_char() == '/' {
+      self_closing_tag_flag = true;
+      assert!(self.text_parser.consume_char() == '/');
+    }
+    if self.text_parser.next_char() == '>' {
+      // Closing character '>' could not be inline
+      self.text_parser.consume_whitespace();
+      assert!(self.text_parser.consume_char() == '>');
+    }
 
-    // Closing tag
-    assert!(self.text_parser.consume_char() == '<');
-    assert!(self.text_parser.consume_char() == '/');
-    assert!(self.parse_tag_name() == tag_name);
-    assert!(self.text_parser.consume_char() == '>');
+    if !self_closing_tag_flag
+      && self_closing_tags_by_default
+        .iter()
+        .all(|self_closing_tag| !tag_name.contains(self_closing_tag))
+    {
+      // Contents
+      children = self.parse_nodes();
 
+      // Closing tag
+      assert!(self.text_parser.consume_char() == '<');
+      assert!(self.text_parser.consume_char() == '/');
+      assert!(self.parse_tag_name() == tag_name);
+      // Closing character '>' could not be inline
+      self.text_parser.consume_whitespace();
+      assert!(self.text_parser.consume_char() == '>');
+    }
     return dom::Node::element(tag_name, attributes, children);
+  }
+
+  // Parse a single comment, including its open tag, contents, and closing tag
+  fn parse_comment(&mut self) -> dom::Node {
+    // Opening tag
+    assert!(self.text_parser.consume_char() == '<');
+    assert!(self.text_parser.consume_char() == '!');
+    assert!(self.text_parser.consume_char() == '-');
+    assert!(self.text_parser.consume_char() == '-');
+
+    // Comment
+    let comment: String = self.parse_comment_content();
+
+    // Closing characters '-->' could not be inline
+    self.text_parser.consume_whitespace();
+    // Closing tag
+    assert!(self.text_parser.consume_char() == '-');
+    assert!(self.text_parser.consume_char() == '-');
+    assert!(self.text_parser.consume_char() == '>');
+
+    return dom::Node::comment(comment);
   }
 
   // Parse a single node
   fn parse_node(&mut self) -> dom::Node {
     match self.text_parser.next_char() {
-      '<' => self.parse_element(),
+      '<' => {
+        if self.text_parser.next_offset_char(1) == '!' {
+          return self.parse_comment();
+        }
+        self.parse_element()
+      }
       _ => self.parse_text(),
     }
   }
@@ -82,7 +132,7 @@ impl HTMLParser {
     let mut attributes: dom::AttributeMap = hashmap![];
     loop {
       self.text_parser.consume_whitespace();
-      if self.text_parser.next_char() == '>' {
+      if self.text_parser.next_char() == '>' || self.text_parser.next_char() == '/' {
         break;
       }
       let (name, value): (String, String) = self.parse_attribute();
@@ -131,6 +181,15 @@ mod tests {
     assert_eq!(html_parser.parse_tag_name(), "p");
   }
 
+  // Test the method parse_comment_content of the HTMLParser struct implementation
+  #[test]
+  fn test_parse_comment_content() {
+    let mut html_parser: HTMLParser = HTMLParser::new(1, " Hello World! -->".to_string());
+
+    // Assert that the parse_comment_content method correctly parses the tag name "p"
+    assert_eq!(html_parser.parse_comment_content(), "Hello World! ");
+  }
+
   // Test the method parse_text of the HTMLParser struct implementation
   #[test]
   fn test_parse_text() {
@@ -145,15 +204,43 @@ mod tests {
   #[test]
   fn test_parse_element() {
     let mut html_parser: HTMLParser =
-      HTMLParser::new(0, "<p class='paragraph'>Hello World!</p>".to_string());
-    let tag_name: String = String::from("p");
-    let attributes: dom::AttributeMap =
+      HTMLParser::new(0, "<p class='paragraph'\n>Hello World!</p\n>".to_string());
+    let tag_name_1: String = String::from("p");
+    let attributes_1: dom::AttributeMap =
       hashmap![String::from("class") => String::from("paragraph")];
-    let children: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
-    let node: dom::Node = dom::Node::element(tag_name, attributes, children);
+    let children_1: Vec<dom::Node> = vec![dom::Node::text("Hello World!".to_string())];
+    let node_1: dom::Node = dom::Node::element(tag_name_1, attributes_1, children_1);
 
-    // Assert that the parse_element method correctly parses the element "<p class='paragraph'>Hello World!</p>"
-    assert_eq!(html_parser.parse_element(), node);
+    // Assert that the parse_element method correctly parses the element "<p class='paragraph'\n>Hello World!</p\n>"
+    assert_eq!(html_parser.parse_element(), node_1);
+
+    html_parser = HTMLParser::new(0, "<div class='container' />".to_string());
+    let tag_name_2: String = String::from("div");
+    let attributes_2: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("container")];
+    let node_2: dom::Node = dom::Node::element(tag_name_2, attributes_2, vec![]);
+
+    // Assert that the parse_element method correctly parses the element "<div class='container' />"
+    assert_eq!(html_parser.parse_element(), node_2);
+
+    html_parser = HTMLParser::new(0, "<link href='https://www.test.com' >".to_string());
+    let tag_name_3: String = String::from("link");
+    let attributes_3: dom::AttributeMap =
+      hashmap![String::from("href") => String::from("https://www.test.com")];
+    let node_3: dom::Node = dom::Node::element(tag_name_3, attributes_3, vec![]);
+
+    // Assert that the parse_element method correctly parses the element "<link href='https://www.test.com' >"
+    assert_eq!(html_parser.parse_element(), node_3);
+  }
+
+  // Test the method parse_comment of the HTMLParser struct implementation
+  #[test]
+  fn test_parse_comment() {
+    let mut html_parser: HTMLParser = HTMLParser::new(0, "<!-- Hello World! -->".to_string());
+    let node: dom::Node = dom::Node::comment(" Hello World! ".to_string());
+
+    // Assert that the parse_comment method correctly parses the element "<!-- Hello World! -->"
+    assert_eq!(html_parser.parse_comment(), node);
   }
 
   // Test the method parse_node of the HTMLParser struct implementation
