@@ -211,4 +211,16 @@ mod tests {
     // Assert that the position is correctly updated to 9 after consuming the characters
     assert_eq!(text_parser.position, 9);
   }
+
+    // Test the method consume_until_match of the TextParser struct implementation
+    #[test]
+    fn test_consume_until_match() {
+      let mut text_parser: TextParser = TextParser::new(4, "<!-- Hello World! -->".to_string());
+  
+      // Assert that the consume_until_match method correctly consumes everything less the keyword
+      // and correctly returns the consumed characters as a string
+      assert_eq!(text_parser.consume_until_match("-->"), " Hello World! ");
+      // Assert that the position is correctly updated to 8 after consuming the characters
+      assert_eq!(text_parser.position, 18);
+    }
 }
