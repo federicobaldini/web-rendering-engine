@@ -105,6 +105,21 @@ mod tests {
     assert_eq!(text_parser.next_char(), '>');
   }
 
+    // Test the method next_offset_char of the TextParser struct implementation
+    #[test]
+    fn test_next_offset_char() {
+      let mut text_parser: TextParser = TextParser::new(0, "<p>Hello World!</p>".to_string());
+  
+      // Assert that the next_offset_char method correctly returns the character '<'
+      assert_eq!(text_parser.next_offset_char(1), 'p');
+  
+      // Assert that the next_offset_char method correctly returns the character 'p'
+      assert_eq!(text_parser.next_offset_char(9), 'W');
+
+      // Assert that the next_offset_char method correctly returns the character '>'
+      assert_eq!(text_parser.next_offset_char(18), '>');
+    }
+
   // Test the method starts_with of the TextParser struct implementation
   #[test]
   fn test_starts_with() {
