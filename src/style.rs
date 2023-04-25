@@ -66,7 +66,10 @@ impl<'a> StyledNode<'a> {
 
   // Return the specified value of a property if it exists, otherwise "None"
   pub fn value(&self, name: &str) -> Option<css::Value> {
-    self.specified_values.get(name).map(|v: &css::Value| v.clone())
+    self
+      .specified_values
+      .get(name)
+      .map(|v: &css::Value| v.clone())
   }
 
   // Return the specified value of property "name", or property "fallback_name" if that doesn't
@@ -101,6 +104,9 @@ impl<'a> StyledNode<'a> {
     match style_node.node().node_type() {
       dom::NodeType::Text(ref text) => {
         println!("{:spaces$}{}", "", text, spaces = indent);
+      }
+      dom::NodeType::Comment(ref comment) => {
+        println!("{:spaces$}<!--{}-->", "", comment, spaces = indent);
       }
       dom::NodeType::Element(ref element) => {
         if *style_node.specified_values() != hashmap![] {
@@ -210,6 +216,7 @@ pub fn style_tree<'a>(root: &'a dom::Node, stylesheet: &'a css::Stylesheet) -> S
     match root.node_type() {
       dom::NodeType::Element(ref elem) => specified_values(elem, stylesheet),
       dom::NodeType::Text(_) => hashmap![],
+      dom::NodeType::Comment(_) => hashmap![],
     },
     root
       .children()
