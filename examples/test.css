@@ -1,0 +1,25 @@
+.container-1 {
+  display: block;
+  padding: 32px;
+  background: #ec7063;
+}
+.container-2 {
+  display: block;
+  width: 120px;
+  height: 80px;
+  padding: 16px;
+  margin: 8px;
+  background: #58d68d;
+  border-width: 4px;
+  border-color: #f4d03f;
+}
+.container-3 {
+  display: block;
+  width: 60px;
+  height: 100px;
+  padding: 16px;
+  margin: 8px;
+  background: #5dade2;
+  border-width: 4px;
+  border-color: #f4d03f;
+}
