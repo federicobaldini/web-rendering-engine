@@ -194,10 +194,20 @@ impl Canvas {
         let y1: usize =
           (rectangle.y() + rectangle.height()).clamp(0.0, self.height as f32) as usize;
 
+        // Normalize source alpha to [0.0, 1.0].
+        let src_a: f32 = color.alpha() as f32 / 255.0;
+        let inv_a: f32 = 1.0 - src_a;
+
         for y in y0..y1 {
           for x in x0..x1 {
-            // TODO: alpha compositing with existing pixel
-            self.pixels[x + y * self.width] = *color;
+            // Porter-Duff "over": blend src color over the existing destination pixel.
+            let dst: css::Color = self.pixels[x + y * self.width];
+            let dst_a: f32 = dst.alpha() as f32 / 255.0;
+            let r: u8 = (color.red() as f32 * src_a + dst.red() as f32 * inv_a) as u8;
+            let g: u8 = (color.green() as f32 * src_a + dst.green() as f32 * inv_a) as u8;
+            let b: u8 = (color.blue() as f32 * src_a + dst.blue() as f32 * inv_a) as u8;
+            let a: u8 = ((src_a + dst_a * inv_a) * 255.0) as u8;
+            self.pixels[x + y * self.width] = css::Color::new(r, g, b, a);
           }
         }
       }
@@ -621,5 +631,32 @@ mod tests {
 
     assert_eq!(layout_box_pixels_count, 2500);
     assert_eq!(layout_box_pixels_right_position, true);
+  }
+
+  // Test that painting a semi-transparent color over a white background alpha-blends correctly.
+  #[test]
+  fn test_paint_item_alpha_compositing() {
+    // 50% transparent red (a = 128 ≈ 0.502) over white (255, 255, 255, 255).
+    // out_r = 255 * (128/255) + 255 * (1 - 128/255) = 255
+    // out_g = 0   * (128/255) + 255 * (1 - 128/255) ≈ 127
+    // out_b = 0   * (128/255) + 255 * (1 - 128/255) ≈ 127
+    // out_a = (128/255 + 1.0 * (1 - 128/255)) * 255 = 255
+    let src_a: f32 = 128.0 / 255.0;
+    let inv_a: f32 = 1.0 - src_a;
+    let expected_r: u8 = (255.0 * src_a + 255.0 * inv_a) as u8;
+    let expected_g: u8 = (0.0 * src_a + 255.0 * inv_a) as u8;
+    let expected_b: u8 = (0.0 * src_a + 255.0 * inv_a) as u8;
+    let expected_a: u8 = ((src_a + 1.0 * inv_a) * 255.0) as u8;
+
+    let mut canvas: Canvas = Canvas::new(2, 2);
+    let item: DisplayCommand = DisplayCommand::SolidColor(
+      css::Color::new(255, 0, 0, 128),
+      layout::Rectangle::new(0.0, 0.0, 2.0, 2.0),
+    );
+    canvas.paint_item(&item);
+
+    for pixel in canvas.pixels() {
+      assert_eq!(*pixel, css::Color::new(expected_r, expected_g, expected_b, expected_a));
+    }
   }
 }
