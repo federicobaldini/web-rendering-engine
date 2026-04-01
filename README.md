@@ -1,29 +1,86 @@
 # web-rendering-engine
 
-A simple web rendering engine for HTML and CSS, using Rust.
+A minimal web rendering engine written in Rust. It takes an HTML file and a CSS file as input, runs them through a full rendering pipeline, and writes the result to a PNG image.
 
-Credit: https://github.com/mbrubeck and https://limpet.net/mbrubeck/2014/08/08/toy-layout-engine-1.html
+## What it does
+
+The engine implements the classic browser rendering pipeline in simplified form:
+
+1. **HTML parsing** — reads an HTML document and builds a DOM tree
+2. **CSS parsing** — reads a CSS stylesheet and builds a list of rules
+3. **Style tree** — matches CSS rules against DOM nodes and computes their properties
+4. **Layout** — calculates the position and size of every box on the page
+5. **Painting** — rasterizes the layout to a pixel buffer and saves it as a PNG
+
+## Project structure
+
+```
+src/
+  text_parser.rs    low-level character-by-character parsing utilities
+  html_parser.rs    HTML parser, produces a DOM tree
+  css_parser.rs     CSS parser, produces a stylesheet
+  dom.rs            DOM node types (element, text, comment)
+  css.rs            CSS data types (selectors, values, rules, stylesheet)
+  style.rs          CSS rule matching and style tree construction
+  layout.rs         CSS box model and block layout algorithm
+  painting.rs       display list generation and canvas rasterization
+  lib.rs            re-exports all modules as a public library
+  main.rs           command-line entry point
+
+tests/
+  rendering.rs      end-to-end integration test for the full pipeline
+
+examples/
+  test.html         sample HTML document
+  test.css          sample CSS stylesheet
+```
 
 ## Requirements
 
-To successful run this code, you need to have Rust and Cargo installed on your Machine.
+You need Rust and Cargo installed. If you don't have them yet, follow the guide at https://www.rust-lang.org/learn/get-started.
 
-For the instalation guide [click here](https://www.rust-lang.org/learn/get-started).
+## Running
 
-## Getting started 
-
-Just clone the repo and use cargo to run the code as shown below 
+Clone the repository and run it with Cargo. By default it reads `examples/test.html` and `examples/test.css` and writes `output.png`.
 
 ```bash
-$ git clone https://github.com/federicobaldini/web-rendering-engine
-$ cd web-rendering-engine
-web-rendering-engine->$ cargo run 
+git clone https://github.com/federicobaldini/web-rendering-engine
+cd web-rendering-engine
+cargo run
 ```
 
-## Test
-
-To run code tests, use the following command
+You can point it at different files using command-line flags:
 
 ```bash
-web-rendering-engine->$ cargo test 
+cargo run -- --html path/to/file.html --css path/to/file.css --output result.png
 ```
+
+## Testing
+
+```bash
+cargo test
+```
+
+This runs both the unit tests (one per module) and the integration test that exercises the full HTML to PNG pipeline.
+
+## What is supported
+
+**HTML**
+
+The parser handles elements, text nodes, comments, self-closing tags (`br`, `img`, `input`, `meta`, `link`, `hr`), and attributes with single or double quotes. It recovers gracefully from common errors: boolean attributes without a value, unquoted attribute values, unclosed elements, and mismatched closing tags.
+
+**CSS**
+
+The parser handles type, id, and class selectors with specificity-based cascade ordering. Supported values are pixel lengths, hex colors (`#RRGGBB`), and keywords. It recovers from invalid declarations by skipping them and from invalid rules by skipping the whole block.
+
+**Layout**
+
+The engine implements the CSS block layout algorithm from the CSS 2.1 specification, including the box model (content, padding, border, margin), automatic width distribution, and vertical stacking of block children.
+
+**Painting**
+
+Each element's background and borders are painted to a pixel buffer. The result is saved as a PNG using the `image` crate.
+
+## What is not yet supported
+
+Inline layout and text rendering are not implemented, so text does not appear in the output image. Other missing features are tracked in `TODO.md`.
