@@ -1,16 +1,26 @@
-<div class="container-1">
-  <div class="container-2">
-    <p class="paragraph">It works!</p>
-    <!-- Input tag without the self closing characters '/>', however it has to be read correctly -->
-    <input class="input" >
+<div class="page">
+  <div class="top-bar"></div>
+  <div class="header">
+    <div class="header-title">Web Rendering Engine</div>
+    <div class="header-sub">A toy browser engine built step by step in Rust</div>
   </div>
-  <div class="container-3">
-    <!-- 
-      Complex indentation 
-    -->
-    <p
-      class="paragraph"
-    >It works!</p
-    >
+  <div class="card-pink">
+    <div class="strip-pink">01  HTML Parser</div>
+    <div class="body">Tokenizes raw HTML markup and builds a DOM tree with error recovery</div>
+  </div>
+  <div class="card-green">
+    <div class="strip-green">02  CSS Parser</div>
+    <div class="body">Parses selectors and declarations and resolves the cascade</div>
+  </div>
+  <div class="card-blue">
+    <div class="strip-blue">03  Layout Engine</div>
+    <div class="body">Computes block box dimensions, margins, borders and positions</div>
+  </div>
+  <div class="card-purple">
+    <div class="strip-purple">04  Painter</div>
+    <div class="body">Rasterizes display list items with Porter-Duff alpha compositing</div>
+  </div>
+  <div class="footer">
+    <div class="footer-line">Rendered to 800x600 PNG via ab_glyph and the Rust image crate</div>
   </div>
 </div>
