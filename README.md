@@ -2,6 +2,10 @@
 
 A minimal web rendering engine written in Rust. It takes an HTML file and a CSS file as input, runs them through a full rendering pipeline, and writes the result to a PNG image.
 
+## Preview
+
+![Rendered output](output.png)
+
 ## What it does
 
 The engine implements the classic browser rendering pipeline in simplified form:
@@ -83,4 +87,4 @@ Each element's background and borders are painted to a pixel buffer. The result 
 
 ## What is not yet supported
 
-Alpha compositing is not yet implemented, so colors are always fully opaque. Text color and font size are not inherited from parent elements yet, so all text renders in black at 16px regardless of CSS. Text rendering depends on the Arial font at `/System/Library/Fonts/Supplemental/Arial.ttf`; on systems where that file is absent, text is silently skipped. Other missing features are tracked in `TODO.md`.
+Text color and font size are not inherited from parent elements yet, so all text renders in black at 16px regardless of CSS. Text rendering depends on the Arial font at `/System/Library/Fonts/Supplemental/Arial.ttf`; on systems where that file is absent, text is silently skipped. Other missing features are tracked in `TODO.md`.
