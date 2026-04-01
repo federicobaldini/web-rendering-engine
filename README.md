@@ -83,4 +83,4 @@ Each element's background and borders are painted to a pixel buffer. The result 
 
 ## What is not yet supported
 
-Inline layout and text rendering are not implemented, so text does not appear in the output image. Other missing features are tracked in `TODO.md`.
+Alpha compositing is not yet implemented, so colors are always fully opaque. Text color and font size are not inherited from parent elements yet, so all text renders in black at 16px regardless of CSS. Text rendering depends on the Arial font at `/System/Library/Fonts/Supplemental/Arial.ttf`; on systems where that file is absent, text is silently skipped. Other missing features are tracked in `TODO.md`.

@@ -1,4 +1,7 @@
+use ab_glyph::{Font, PxScale, ScaleFont};
+
 use crate::css;
+use crate::dom;
 use crate::layout;
 
 type DisplayList = Vec<DisplayCommand>;
@@ -6,13 +9,17 @@ type DisplayList = Vec<DisplayCommand>;
 #[derive(Debug)]
 enum DisplayCommand {
   SolidColor(css::Color, layout::Rectangle),
-  // insert more commands here
+  // color, content bounds, text string, font size in px
+  DrawText(css::Color, layout::Rectangle, String, f32),
 }
 
 impl PartialEq for DisplayCommand {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (DisplayCommand::SolidColor(a, b), DisplayCommand::SolidColor(c, d)) => a == c && b == d,
+      (DisplayCommand::DrawText(a, b, c, d), DisplayCommand::DrawText(e, f, g, h)) => {
+        a == e && b == f && c == g && d == h
+      }
       _ => false,
     }
   }
@@ -94,10 +101,35 @@ fn render_borders(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
   ));
 }
 
+// If this layout box is an inline node wrapping a DOM text node, add a DrawText command.
+fn render_text(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
+  if let layout::BoxType::InlineNode(style) = layout_box.box_type() {
+    if let dom::NodeType::Text(text) = style.node().node_type() {
+      // Skip whitespace-only text nodes produced by HTML indentation
+      if text.trim().is_empty() {
+        return;
+      }
+      // Text nodes have no specified values (inheritance is not yet implemented),
+      // so default to black text at 16px.
+      let color: css::Color = css::Color::new(0, 0, 0, 255);
+      let font_size: f32 = style
+        .value("font-size")
+        .map(|v: css::Value| v.to_px())
+        .unwrap_or(16.0);
+      list.push(DisplayCommand::DrawText(
+        color,
+        *layout_box.dimensions().content(),
+        text.clone(),
+        font_size,
+      ));
+    }
+  }
+}
+
 fn render_layout_box(list: &mut DisplayList, layout_box: &layout::LayoutBox) {
   render_background(list, layout_box);
   render_borders(list, layout_box);
-  // TODO: render text
+  render_text(list, layout_box);
 
   for child in layout_box.children() {
     render_layout_box(list, child);
@@ -124,6 +156,8 @@ pub struct Canvas {
   pixels: Vec<css::Color>,
   width: usize,
   height: usize,
+  // Optional font used for text rendering; None if the font file could not be loaded.
+  font: Option<ab_glyph::FontVec>,
 }
 
 impl Canvas {
@@ -134,6 +168,7 @@ impl Canvas {
       pixels: vec![white; width * height],
       width,
       height,
+      font: None,
     };
   }
 
@@ -166,6 +201,62 @@ impl Canvas {
           }
         }
       }
+      DisplayCommand::DrawText(color, rect, text, font_size) => {
+        if let Some(ref font) = self.font {
+          let scale: PxScale = PxScale::from(*font_size);
+          let scaled_font = font.as_scaled(scale);
+          // The caret y is the baseline: top of content box plus the font ascent.
+          let ascent: f32 = scaled_font.ascent();
+          let mut caret_x: f32 = rect.x();
+          let caret_y: f32 = rect.y() + ascent;
+          let mut prev_glyph_id: Option<ab_glyph::GlyphId> = None;
+
+          for ch in text.chars() {
+            if ch.is_control() {
+              continue;
+            }
+            let glyph_id: ab_glyph::GlyphId = scaled_font.glyph_id(ch);
+            // Apply kerning between the previous and current glyph.
+            if let Some(prev_id) = prev_glyph_id {
+              caret_x += scaled_font.kern(prev_id, glyph_id);
+            }
+            let glyph: ab_glyph::Glyph = glyph_id.with_scale_and_position(
+              scale,
+              ab_glyph::point(caret_x, caret_y),
+            );
+            caret_x += scaled_font.h_advance(glyph_id);
+            prev_glyph_id = Some(glyph_id);
+
+            if let Some(outlined) = font.outline_glyph(glyph) {
+              let px_bounds: ab_glyph::Rect = outlined.px_bounds();
+              // px_bounds.min is the top-left corner in canvas pixel coordinates.
+              let box_x: i32 = px_bounds.min.x as i32;
+              let box_y: i32 = px_bounds.min.y as i32;
+              outlined.draw(|px, py, coverage| {
+                // px, py are pixel offsets within the glyph bitmap.
+                let canvas_x: i32 = box_x + px as i32;
+                let canvas_y: i32 = box_y + py as i32;
+                if canvas_x >= 0
+                  && canvas_y >= 0
+                  && (canvas_x as usize) < self.width
+                  && (canvas_y as usize) < self.height
+                {
+                  let idx: usize = canvas_x as usize + canvas_y as usize * self.width;
+                  // Alpha-blend the glyph color over the existing background pixel.
+                  let existing: css::Color = self.pixels[idx];
+                  let inv: f32 = 1.0 - coverage;
+                  let r: u8 = (color.red() as f32 * coverage + existing.red() as f32 * inv) as u8;
+                  let g: u8 =
+                    (color.green() as f32 * coverage + existing.green() as f32 * inv) as u8;
+                  let b: u8 =
+                    (color.blue() as f32 * coverage + existing.blue() as f32 * inv) as u8;
+                  self.pixels[idx] = css::Color::new(r, g, b, 255);
+                }
+              });
+            }
+          }
+        }
+      }
     }
   }
 
@@ -173,6 +264,11 @@ impl Canvas {
   pub fn paint(layout_root: &layout::LayoutBox, bounds: layout::Rectangle) -> Canvas {
     let display_list: Vec<DisplayCommand> = build_display_list(layout_root);
     let mut canvas: Canvas = Canvas::new(bounds.width() as usize, bounds.height() as usize);
+    // Try to load a system font for text rendering. If the file is missing, text is silently skipped.
+    let font_path: &str = "/System/Library/Fonts/Supplemental/Arial.ttf";
+    canvas.font = std::fs::read(font_path)
+      .ok()
+      .and_then(|bytes: Vec<u8>| ab_glyph::FontVec::try_from_vec(bytes).ok());
     for item in display_list {
       canvas.paint_item(&item);
     }
@@ -352,8 +448,8 @@ mod tests {
         layout::Rectangle::new(
           layout_box.dimensions().border_box().x(),
           layout_box.dimensions().border_box().y(),
-          layout_box.dimensions().border().left(),
-          layout_box.dimensions().border_box().height()
+          layout_box.dimensions().border_box().width(),
+          layout_box.dimensions().border().top()
         )
       )
     );
@@ -363,10 +459,12 @@ mod tests {
       DisplayCommand::SolidColor(
         css::Color::new(255, 0, 0, 255),
         layout::Rectangle::new(
-          layout_box.dimensions().border_box().x(),
+          layout_box.dimensions().border_box().x()
+            + layout_box.dimensions().border_box().width()
+            - layout_box.dimensions().border().right(),
           layout_box.dimensions().border_box().y(),
-          layout_box.dimensions().border_box().width(),
-          layout_box.dimensions().border().top()
+          layout_box.dimensions().border().right(),
+          layout_box.dimensions().border_box().height()
         )
       )
     );
@@ -397,6 +495,43 @@ mod tests {
         )
       )
     );
+  }
+
+  // Test that render_text adds a DrawText command for an inline text node.
+  #[test]
+  fn test_render_text() {
+    let text_node: dom::Node = dom::Node::text("Hello".to_string());
+    let style_node: style::StyledNode = style::StyledNode::new(&text_node, hashmap![], vec![]);
+    let layout_box: layout::LayoutBox =
+      layout::LayoutBox::new(layout::BoxType::InlineNode(&style_node));
+    let mut display_list: DisplayList = vec![];
+
+    render_text(&mut display_list, &layout_box);
+
+    assert_eq!(display_list.len(), 1);
+    assert_eq!(
+      display_list[0],
+      DisplayCommand::DrawText(
+        css::Color::new(0, 0, 0, 255),
+        *layout_box.dimensions().content(),
+        "Hello".to_string(),
+        16.0,
+      )
+    );
+  }
+
+  // Test that render_text skips whitespace-only text nodes.
+  #[test]
+  fn test_render_text_skips_whitespace() {
+    let text_node: dom::Node = dom::Node::text("   \n  ".to_string());
+    let style_node: style::StyledNode = style::StyledNode::new(&text_node, hashmap![], vec![]);
+    let layout_box: layout::LayoutBox =
+      layout::LayoutBox::new(layout::BoxType::InlineNode(&style_node));
+    let mut display_list: DisplayList = vec![];
+
+    render_text(&mut display_list, &layout_box);
+
+    assert_eq!(display_list.len(), 0);
   }
 
   // Test the method paint_item of the Canvas struct implementation
