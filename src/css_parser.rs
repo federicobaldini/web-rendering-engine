@@ -103,7 +103,16 @@ impl CSSParser {
         self.text_parser.consume_char();
         break;
       }
-      declarations.push(self.parse_declaration()?);
+      match self.parse_declaration() {
+        Ok(declaration) => declarations.push(declaration),
+        Err(_) => {
+          // Recovery: discard this declaration, skip to the next ';' or '}'
+          self.text_parser.consume_while(|c: char| c != ';' && c != '}');
+          if !self.text_parser.eof() && self.text_parser.next_char() == ';' {
+            self.text_parser.consume_char(); // consume ';'
+          }
+        }
+      }
     }
     Ok(declarations)
   }
@@ -167,7 +176,16 @@ impl CSSParser {
       if self.text_parser.eof() {
         break;
       }
-      rules.push(self.parse_rule()?);
+      match self.parse_rule() {
+        Ok(rule) => rules.push(rule),
+        Err(_) => {
+          // Recovery: discard this rule, skip to its closing '}'
+          self.text_parser.consume_while(|c: char| c != '}');
+          if !self.text_parser.eof() {
+            self.text_parser.consume_char(); // consume '}'
+          }
+        }
+      }
     }
     Ok(rules)
   }
@@ -426,5 +444,50 @@ mod tests {
       .unwrap(),
       Stylesheet::new(vec![rule_1, rule_2])
     );
+  }
+
+  // Test recovery: a declaration with an unknown unit is discarded; valid ones are kept
+  #[test]
+  fn test_recovery_invalid_declaration() {
+    let stylesheet: Stylesheet =
+      CSSParser::parse(".foo{width:100px;height:50unknownunit;background:#ff0000;}".to_string())
+        .unwrap();
+
+    // Assert that only 1 rule was parsed
+    assert_eq!(stylesheet.rules().len(), 1);
+
+    let declarations: &Vec<css::Declaration> = stylesheet.rules()[0].declarations();
+
+    // Assert that the invalid declaration was discarded and the two valid ones are kept
+    assert_eq!(declarations.len(), 2);
+    assert_eq!(declarations[0].name(), "width");
+    assert_eq!(declarations[0].value(), &css::Value::Length(100.0, css::Unit::Px));
+    assert_eq!(declarations[1].name(), "background");
+    assert_eq!(
+      declarations[1].value(),
+      &css::Value::ColorValue(css::Color::new(255, 0, 0, 255))
+    );
+  }
+
+  // Test recovery: a rule with an invalid selector is discarded; valid rules are kept
+  #[test]
+  fn test_recovery_invalid_rule() {
+    let stylesheet: Stylesheet = CSSParser::parse(
+      ".valid1{width:100px;}!!!invalid!!!{color:red;}.valid2{height:50px;}".to_string(),
+    )
+    .unwrap();
+
+    // Assert that only the 2 valid rules were kept; the invalid one was discarded
+    assert_eq!(stylesheet.rules().len(), 2);
+
+    let declarations_1: &Vec<css::Declaration> = stylesheet.rules()[0].declarations();
+    assert_eq!(declarations_1.len(), 1);
+    assert_eq!(declarations_1[0].name(), "width");
+    assert_eq!(declarations_1[0].value(), &css::Value::Length(100.0, css::Unit::Px));
+
+    let declarations_2: &Vec<css::Declaration> = stylesheet.rules()[1].declarations();
+    assert_eq!(declarations_2.len(), 1);
+    assert_eq!(declarations_2[0].name(), "height");
+    assert_eq!(declarations_2[0].value(), &css::Value::Length(50.0, css::Unit::Px));
   }
 }
