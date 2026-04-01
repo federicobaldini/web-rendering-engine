@@ -1,20 +1,16 @@
-mod css;
-mod css_parser;
-mod dom;
-mod html_parser;
-mod layout;
-mod painting;
-mod style;
-mod text_parser;
+use web_rendering_engine::css;
+use web_rendering_engine::css_parser::CSSParser;
+use web_rendering_engine::dom;
+use web_rendering_engine::html_parser::HTMLParser;
+use web_rendering_engine::layout;
+use web_rendering_engine::painting;
+use web_rendering_engine::style;
 
 use std::fs::File;
 use std::io::Read;
 
-use crate::css_parser::CSSParser;
-use crate::html_parser::HTMLParser;
-
 fn read_source(filename: &str) -> Result<String, String> {
-  let mut content = String::new();
+  let mut content: String = String::new();
   File::open(filename)
     .map_err(|e| format!("Cannot open '{}': {}", filename, e))?
     .read_to_string(&mut content)
@@ -33,8 +29,8 @@ fn run() -> Result<(), String> {
   let matches: getopts::Matches = options
     .parse(std::env::args().skip(1))
     .map_err(|e| format!("Failed to parse options: {}", e))?;
-  let str_arg =
-    |flag: &str, default: &str| -> String { matches.opt_str(flag).unwrap_or(default.to_string()) };
+  let str_arg: &dyn Fn(&str, &str) -> String =
+    &|flag: &str, default: &str| -> String { matches.opt_str(flag).unwrap_or(default.to_string()) };
 
   // Choose a format:
   let png: bool = match &str_arg("f", "png")[..] {
