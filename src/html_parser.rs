@@ -65,15 +65,22 @@ impl HTMLParser {
       // Contents
       children = self.parse_nodes()?;
 
+      // Recovery: if we reached EOF, the element was never closed — return it as-is
+      if self.text_parser.eof() {
+        return Ok(dom::Node::element(tag_name, attributes, children));
+      }
+
       // Closing tag
       self.text_parser.expect_char('<')?;
       self.text_parser.expect_char('/')?;
       let closing_tag: String = self.parse_tag_name();
       if closing_tag != tag_name {
-        return Err(format!(
-          "Mismatched tags: expected '</{}>', found '</{}>'",
-          tag_name, closing_tag
-        ));
+        // Recovery: mismatched closing tag — close the current element anyway and skip to '>'
+        self.text_parser.consume_while(|c: char| c != '>');
+        if !self.text_parser.eof() {
+          self.text_parser.consume_char(); // consume '>'
+        }
+        return Ok(dom::Node::element(tag_name, attributes, children));
       }
       // Closing character '>' could not be inline
       self.text_parser.consume_whitespace();
@@ -119,7 +126,15 @@ impl HTMLParser {
   // Parse a single name="value" pair
   fn parse_attribute(&mut self) -> Result<(String, String), String> {
     let name: String = self.parse_tag_name();
+    // Consume optional whitespace between the name and '=' (e.g. class = "foo")
+    self.text_parser.consume_whitespace();
+    // Recovery: an attribute without '=' is treated as a boolean attribute with an empty value
+    if self.text_parser.eof() || self.text_parser.next_char() != '=' {
+      return Ok((name, String::new()));
+    }
     self.text_parser.expect_char('=')?;
+    // Consume optional whitespace between '=' and the value (e.g. class= "foo")
+    self.text_parser.consume_whitespace();
     let value: String = self.parse_attribute_value()?;
     Ok((name, value))
   }
@@ -128,10 +143,11 @@ impl HTMLParser {
   fn parse_attribute_value(&mut self) -> Result<String, String> {
     let open_quote: char = self.text_parser.consume_char();
     if open_quote != '"' && open_quote != '\'' {
-      return Err(format!(
-        "Expected quote character, found '{}'",
-        open_quote
-      ));
+      // Recovery: unquoted value — read until whitespace, '/', or '>'
+      let rest: String = self.text_parser.consume_while(|c: char| {
+        c != ' ' && c != '\t' && c != '\n' && c != '/' && c != '>'
+      });
+      return Ok(format!("{}{}", open_quote, rest));
     }
     let value: String = self.text_parser.consume_while(|c: char| c != open_quote);
     self.text_parser.expect_char(open_quote)?;
@@ -342,6 +358,56 @@ mod tests {
 
     // Assert that the parse_nodes method correctly parses the nested and sibling nodes: node_1, node_2.node_3
     assert_eq!(html_parser.parse_nodes().unwrap(), vec![node_1, node_2]);
+  }
+
+  // Test recovery: boolean attribute without '=value'
+  #[test]
+  fn test_recovery_boolean_attribute() {
+    let mut html_parser: HTMLParser = HTMLParser::new(0, "<div disabled>text</div>".to_string());
+    let attributes: dom::AttributeMap = hashmap![String::from("disabled") => String::from("")];
+    let children: Vec<dom::Node> = vec![dom::Node::text("text".to_string())];
+    let expected: dom::Node = dom::Node::element("div".to_string(), attributes, children);
+
+    // Assert that a boolean attribute (no '=value') is recovered as an empty string value
+    assert_eq!(html_parser.parse_element().unwrap(), expected);
+  }
+
+  // Test recovery: attribute value without quotes
+  #[test]
+  fn test_recovery_unquoted_attribute() {
+    let mut html_parser: HTMLParser =
+      HTMLParser::new(0, "<div class=myclass>text</div>".to_string());
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("myclass")];
+    let children: Vec<dom::Node> = vec![dom::Node::text("text".to_string())];
+    let expected: dom::Node = dom::Node::element("div".to_string(), attributes, children);
+
+    // Assert that an unquoted attribute value is recovered by reading until whitespace or '>'
+    assert_eq!(html_parser.parse_element().unwrap(), expected);
+  }
+
+  // Test recovery: element not closed before EOF
+  #[test]
+  fn test_recovery_unclosed_element() {
+    let mut html_parser: HTMLParser =
+      HTMLParser::new(0, "<div>unclosed text".to_string());
+    let children: Vec<dom::Node> = vec![dom::Node::text("unclosed text".to_string())];
+    let expected: dom::Node = dom::Node::element("div".to_string(), hashmap![], children);
+
+    // Assert that an element without a closing tag is auto-closed at EOF
+    assert_eq!(html_parser.parse_element().unwrap(), expected);
+  }
+
+  // Test recovery: closing tag that doesn't match the opening tag
+  #[test]
+  fn test_recovery_mismatched_closing_tag() {
+    let mut html_parser: HTMLParser =
+      HTMLParser::new(0, "<div>text</p>".to_string());
+    let children: Vec<dom::Node> = vec![dom::Node::text("text".to_string())];
+    let expected: dom::Node = dom::Node::element("div".to_string(), hashmap![], children);
+
+    // Assert that a mismatched closing tag is skipped and the element is closed anyway
+    assert_eq!(html_parser.parse_element().unwrap(), expected);
   }
 
   // Test the function parse of the HTMLParser struct implementation
