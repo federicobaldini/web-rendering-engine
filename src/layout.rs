@@ -448,12 +448,82 @@ impl<'a> LayoutBox<'a> {
     self.calculate_block_height();
   }
 
+  // Compute the dimensions of an inline-level element from its CSS properties.
+  // Position (x, y) is not set here — the parent anonymous block is responsible for that.
+  fn layout_inline(&mut self, _containing_block: Dimensions) {
+    let style: &StyledNode = self.get_style_node();
+    let zero: css::Value = css::Value::Length(0.0, css::Unit::Px);
+
+    self.dimensions.padding.left = style.lookup("padding-left", "padding", &zero).to_px();
+    self.dimensions.padding.right = style.lookup("padding-right", "padding", &zero).to_px();
+    self.dimensions.padding.top = style.lookup("padding-top", "padding", &zero).to_px();
+    self.dimensions.padding.bottom = style.lookup("padding-bottom", "padding", &zero).to_px();
+
+    self.dimensions.border.left = style.lookup("border-left-width", "border-width", &zero).to_px();
+    self.dimensions.border.right = style.lookup("border-right-width", "border-width", &zero).to_px();
+    self.dimensions.border.top = style.lookup("border-top-width", "border-width", &zero).to_px();
+    self.dimensions.border.bottom = style.lookup("border-bottom-width", "border-width", &zero).to_px();
+
+    self.dimensions.margin.left = style.lookup("margin-left", "margin", &zero).to_px();
+    self.dimensions.margin.right = style.lookup("margin-right", "margin", &zero).to_px();
+    self.dimensions.margin.top = style.lookup("margin-top", "margin", &zero).to_px();
+    self.dimensions.margin.bottom = style.lookup("margin-bottom", "margin", &zero).to_px();
+
+    // Use the explicit CSS width/height, or 0 if not specified (no text measurement yet)
+    self.dimensions.content.width = style.value("width").map(|v: css::Value| v.to_px()).unwrap_or(0.0);
+    self.dimensions.content.height = style.value("height").map(|v: css::Value| v.to_px()).unwrap_or(0.0);
+  }
+
+  // Place inline children left-to-right inside an anonymous block, wrapping to the next
+  // line when a child no longer fits within the container width.
+  fn layout_anonymous_block(&mut self, containing_block: Dimensions) {
+    self.dimensions.content.x = containing_block.content.x;
+    self.dimensions.content.y = containing_block.content.y + containing_block.content.height;
+    self.dimensions.content.width = containing_block.content.width;
+
+    let mut cursor_x: f32 = 0.0;
+    let mut cursor_y: f32 = 0.0;
+    let mut line_height: f32 = 0.0;
+
+    for child in &mut self.children {
+      child.layout(self.dimensions);
+
+      let child_margin_width: f32 = child.dimensions.margin_box().width();
+      let child_margin_height: f32 = child.dimensions.margin_box().height();
+
+      // Wrap only when there is already content on the current line
+      if cursor_x + child_margin_width > self.dimensions.content.width && cursor_x > 0.0 {
+        cursor_y += line_height;
+        cursor_x = 0.0;
+        line_height = 0.0;
+      }
+
+      child.dimensions.content.x = self.dimensions.content.x
+        + cursor_x
+        + child.dimensions.margin.left
+        + child.dimensions.border.left
+        + child.dimensions.padding.left;
+      child.dimensions.content.y = self.dimensions.content.y
+        + cursor_y
+        + child.dimensions.margin.top
+        + child.dimensions.border.top
+        + child.dimensions.padding.top;
+
+      cursor_x += child_margin_width;
+      if child_margin_height > line_height {
+        line_height = child_margin_height;
+      }
+    }
+
+    self.dimensions.content.height = cursor_y + line_height;
+  }
+
   // Lay out a box and its descendants
   fn layout(&mut self, containing_block: Dimensions) {
     match &self.box_type {
       BoxType::BlockNode(_) => self.layout_block(containing_block),
-      BoxType::InlineNode(_) => {}  // TODO
-      BoxType::AnonymousBlock => {} // TODO
+      BoxType::InlineNode(_) => self.layout_inline(containing_block),
+      BoxType::AnonymousBlock => self.layout_anonymous_block(containing_block),
     }
   }
 }
@@ -1060,5 +1130,187 @@ mod tests {
       layout_tree_root.children()[0].children()[0].children()[0],
       text_box
     );
+  }
+
+  // Test the method layout_inline of the LayoutBox struct implementation
+  #[test]
+  fn test_layout_inline() {
+    let tag_name: String = String::from("span");
+    let attributes: dom::AttributeMap =
+      hashmap![String::from("class") => String::from("inline-1")];
+    let node: dom::Node = dom::Node::element(tag_name, attributes, vec![]);
+    let simple_selector: css::SimpleSelector =
+      css::SimpleSelector::new(None, None, vec!["inline-1".to_string()]);
+    let selector: css::Selector = css::Selector::Simple(simple_selector);
+    let rule: css::Rule = css::Rule::new(
+      vec![selector],
+      vec![
+        css::Declaration::new("width".to_string(), css::Value::Length(80.0, css::Unit::Px)),
+        css::Declaration::new("height".to_string(), css::Value::Length(20.0, css::Unit::Px)),
+        css::Declaration::new("padding".to_string(), css::Value::Length(4.0, css::Unit::Px)),
+        css::Declaration::new("border-width".to_string(), css::Value::Length(2.0, css::Unit::Px)),
+        css::Declaration::new("margin".to_string(), css::Value::Length(3.0, css::Unit::Px)),
+      ],
+    );
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![rule]);
+    let mut values: style::PropertyMap = hashmap![];
+    match node.node_type() {
+      dom::NodeType::Element(element) => {
+        values = style::specified_values(&element, &stylesheet);
+      }
+      _ => {}
+    }
+    let style_node: StyledNode = StyledNode::new(&node, values, vec![]);
+    let mut layout_box: LayoutBox = LayoutBox::new(BoxType::InlineNode(&style_node));
+    let containing_block: Dimensions = Dimensions::new(
+      Rectangle::new(0.0, 0.0, 200.0, 100.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    );
+
+    layout_box.layout_inline(containing_block);
+
+    assert_eq!(layout_box.dimensions().content().width(), 80.0);
+    assert_eq!(layout_box.dimensions().content().height(), 20.0);
+    assert_eq!(layout_box.dimensions().padding().top(), 4.0);
+    assert_eq!(layout_box.dimensions().padding().left(), 4.0);
+    assert_eq!(layout_box.dimensions().border().top(), 2.0);
+    assert_eq!(layout_box.dimensions().border().left(), 2.0);
+    assert_eq!(layout_box.dimensions().margin().top(), 3.0);
+    assert_eq!(layout_box.dimensions().margin().left(), 3.0);
+  }
+
+  // Test the method layout_anonymous_block of the LayoutBox struct implementation.
+  // Two inline children fit side by side on a single line.
+  #[test]
+  fn test_layout_anonymous_block_single_line() {
+    let node_1: dom::Node = dom::Node::element(
+      "span".to_string(),
+      hashmap![String::from("class") => String::from("a")],
+      vec![],
+    );
+    let node_2: dom::Node = dom::Node::element(
+      "span".to_string(),
+      hashmap![String::from("class") => String::from("b")],
+      vec![],
+    );
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![
+      css::Rule::new(
+        vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["a".to_string()]))],
+        vec![
+          css::Declaration::new("width".to_string(), css::Value::Length(50.0, css::Unit::Px)),
+          css::Declaration::new("height".to_string(), css::Value::Length(30.0, css::Unit::Px)),
+        ],
+      ),
+      css::Rule::new(
+        vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["b".to_string()]))],
+        vec![
+          css::Declaration::new("width".to_string(), css::Value::Length(60.0, css::Unit::Px)),
+          css::Declaration::new("height".to_string(), css::Value::Length(20.0, css::Unit::Px)),
+        ],
+      ),
+    ]);
+    let mut values_1: style::PropertyMap = hashmap![];
+    let mut values_2: style::PropertyMap = hashmap![];
+    match node_1.node_type() {
+      dom::NodeType::Element(element) => values_1 = style::specified_values(&element, &stylesheet),
+      _ => {}
+    }
+    match node_2.node_type() {
+      dom::NodeType::Element(element) => values_2 = style::specified_values(&element, &stylesheet),
+      _ => {}
+    }
+    let style_node_1: style::StyledNode = style::StyledNode::new(&node_1, values_1, vec![]);
+    let style_node_2: style::StyledNode = style::StyledNode::new(&node_2, values_2, vec![]);
+    let child_box_1: LayoutBox = LayoutBox::new(BoxType::InlineNode(&style_node_1));
+    let child_box_2: LayoutBox = LayoutBox::new(BoxType::InlineNode(&style_node_2));
+    let mut anon_box: LayoutBox = LayoutBox::new(BoxType::AnonymousBlock);
+    anon_box.add_child(child_box_1);
+    anon_box.add_child(child_box_2);
+
+    let containing_block: Dimensions = Dimensions::new(
+      Rectangle::new(0.0, 0.0, 200.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    );
+
+    anon_box.layout_anonymous_block(containing_block);
+
+    // Both children fit on one line: child 1 at x=0, child 2 at x=50
+    assert_eq!(anon_box.children()[0].dimensions().content().x(), 0.0);
+    assert_eq!(anon_box.children()[0].dimensions().content().y(), 0.0);
+    assert_eq!(anon_box.children()[1].dimensions().content().x(), 50.0);
+    assert_eq!(anon_box.children()[1].dimensions().content().y(), 0.0);
+    // Height equals the tallest child on the line
+    assert_eq!(anon_box.dimensions().content().height(), 30.0);
+  }
+
+  // Test that layout_anonymous_block wraps to a new line when a child no longer fits.
+  #[test]
+  fn test_layout_anonymous_block_wrapping() {
+    let node_1: dom::Node = dom::Node::element(
+      "span".to_string(),
+      hashmap![String::from("class") => String::from("a")],
+      vec![],
+    );
+    let node_2: dom::Node = dom::Node::element(
+      "span".to_string(),
+      hashmap![String::from("class") => String::from("b")],
+      vec![],
+    );
+    let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![
+      css::Rule::new(
+        vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["a".to_string()]))],
+        vec![
+          css::Declaration::new("width".to_string(), css::Value::Length(50.0, css::Unit::Px)),
+          css::Declaration::new("height".to_string(), css::Value::Length(30.0, css::Unit::Px)),
+        ],
+      ),
+      css::Rule::new(
+        vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["b".to_string()]))],
+        vec![
+          css::Declaration::new("width".to_string(), css::Value::Length(60.0, css::Unit::Px)),
+          css::Declaration::new("height".to_string(), css::Value::Length(20.0, css::Unit::Px)),
+        ],
+      ),
+    ]);
+    let mut values_1: style::PropertyMap = hashmap![];
+    let mut values_2: style::PropertyMap = hashmap![];
+    match node_1.node_type() {
+      dom::NodeType::Element(element) => values_1 = style::specified_values(&element, &stylesheet),
+      _ => {}
+    }
+    match node_2.node_type() {
+      dom::NodeType::Element(element) => values_2 = style::specified_values(&element, &stylesheet),
+      _ => {}
+    }
+    let style_node_1: style::StyledNode = style::StyledNode::new(&node_1, values_1, vec![]);
+    let style_node_2: style::StyledNode = style::StyledNode::new(&node_2, values_2, vec![]);
+    let child_box_1: LayoutBox = LayoutBox::new(BoxType::InlineNode(&style_node_1));
+    let child_box_2: LayoutBox = LayoutBox::new(BoxType::InlineNode(&style_node_2));
+    let mut anon_box: LayoutBox = LayoutBox::new(BoxType::AnonymousBlock);
+    anon_box.add_child(child_box_1);
+    anon_box.add_child(child_box_2);
+
+    // Container is only 60px wide: child 1 (50px) fits, child 2 (60px) wraps
+    let containing_block: Dimensions = Dimensions::new(
+      Rectangle::new(0.0, 0.0, 60.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+      EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    );
+
+    anon_box.layout_anonymous_block(containing_block);
+
+    // Child 1 stays on line 0
+    assert_eq!(anon_box.children()[0].dimensions().content().x(), 0.0);
+    assert_eq!(anon_box.children()[0].dimensions().content().y(), 0.0);
+    // Child 2 wraps to line 1 (y = height of line 0 = 30)
+    assert_eq!(anon_box.children()[1].dimensions().content().x(), 0.0);
+    assert_eq!(anon_box.children()[1].dimensions().content().y(), 30.0);
+    // Total height = line 0 (30) + line 1 (20)
+    assert_eq!(anon_box.dimensions().content().height(), 50.0);
   }
 }

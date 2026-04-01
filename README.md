@@ -75,7 +75,7 @@ The parser handles type, id, and class selectors with specificity-based cascade 
 
 **Layout**
 
-The engine implements the CSS block layout algorithm from the CSS 2.1 specification, including the box model (content, padding, border, margin), automatic width distribution, and vertical stacking of block children.
+The engine implements the CSS block and inline layout algorithms from the CSS 2.1 specification, including the box model (content, padding, border, margin), automatic width distribution, vertical stacking of block children, and horizontal placement of inline children with line wrapping.
 
 **Painting**
 
