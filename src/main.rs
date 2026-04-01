@@ -13,16 +13,16 @@ use std::io::Read;
 use crate::css_parser::CSSParser;
 use crate::html_parser::HTMLParser;
 
-fn read_source(filename: String) -> String {
-  let mut str = String::new();
+fn read_source(filename: &str) -> Result<String, String> {
+  let mut content = String::new();
   File::open(filename)
-    .unwrap()
-    .read_to_string(&mut str)
-    .unwrap();
-  str
+    .map_err(|e| format!("Cannot open '{}': {}", filename, e))?
+    .read_to_string(&mut content)
+    .map_err(|e| format!("Cannot read '{}': {}", filename, e))?;
+  Ok(content)
 }
 
-fn main() {
+fn run() -> Result<(), String> {
   // Parse command-line options:
   let mut options: getopts::Options = getopts::Options::new();
   options.optopt("h", "html", "HTML document", "FILENAME");
@@ -30,19 +30,21 @@ fn main() {
   options.optopt("o", "output", "Output file", "FILENAME");
   options.optopt("f", "format", "Output file format", "png");
 
-  let matches = options.parse(std::env::args().skip(1)).unwrap();
+  let matches: getopts::Matches = options
+    .parse(std::env::args().skip(1))
+    .map_err(|e| format!("Failed to parse options: {}", e))?;
   let str_arg =
     |flag: &str, default: &str| -> String { matches.opt_str(flag).unwrap_or(default.to_string()) };
 
   // Choose a format:
   let png: bool = match &str_arg("f", "png")[..] {
     "png" => true,
-    x => panic!("Unknown output format: {}", x),
+    x => return Err(format!("Unknown output format: '{}'", x)),
   };
 
   // Read input files:
-  let html: String = read_source(str_arg("h", "examples/test.html"));
-  let css: String = read_source(str_arg("c", "examples/test.css"));
+  let html: String = read_source(&str_arg("h", "examples/test.html"))?;
+  let css: String = read_source(&str_arg("c", "examples/test.css"))?;
 
   // Since we don't have an actual window, hard-code the "viewport" size.
   let mut viewport: layout::Dimensions = Default::default();
@@ -50,8 +52,8 @@ fn main() {
   viewport.set_content().set_height(600.0);
 
   // Parsing and rendering:
-  let root_node: dom::Node = HTMLParser::parse(html);
-  let stylesheet: css::Stylesheet = CSSParser::parse(css);
+  let root_node: dom::Node = HTMLParser::parse(html)?;
+  let stylesheet: css::Stylesheet = CSSParser::parse(css)?;
   let style_root: style::StyledNode = style::style_tree(&root_node, &stylesheet);
   let layout_root: layout::LayoutBox = layout::layout_tree(&style_root, viewport);
 
@@ -80,5 +82,14 @@ fn main() {
     println!("Saved output as {}", filename)
   } else {
     println!("Error saving output as {}", filename)
+  }
+
+  Ok(())
+}
+
+fn main() {
+  if let Err(e) = run() {
+    eprintln!("Error: {}", e);
+    std::process::exit(1);
   }
 }

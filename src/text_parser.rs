@@ -82,6 +82,16 @@ impl TextParser {
   pub fn consume_whitespace(&mut self) {
     self.consume_while(char::is_whitespace);
   }
+
+  // Consume the next character and return it, or an error if it doesn't match expected
+  pub fn expect_char(&mut self, expected: char) -> Result<char, String> {
+    let c: char = self.consume_char();
+    if c == expected {
+      Ok(c)
+    } else {
+      Err(format!("Expected '{}', found '{}'", expected, c))
+    }
+  }
 }
 
 #[cfg(test)]

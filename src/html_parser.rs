@@ -37,24 +37,24 @@ impl HTMLParser {
   }
 
   // Parse a single element, including its open tag, contents, and closing tag
-  fn parse_element(&mut self) -> dom::Node {
+  fn parse_element(&mut self) -> Result<dom::Node, String> {
     let self_closing_tags_by_default: Vec<&str> = vec!["br", "img", "input", "meta", "link", "hr"];
     let mut self_closing_tag_flag: bool = false;
     let mut children: Vec<dom::Node> = vec![];
 
     // Opening tag
-    assert!(self.text_parser.consume_char() == '<');
+    self.text_parser.expect_char('<')?;
     let tag_name: String = self.parse_tag_name();
-    let attributes: dom::AttributeMap = self.parse_attributes();
+    let attributes: dom::AttributeMap = self.parse_attributes()?;
 
     if self.text_parser.next_char() == '/' {
       self_closing_tag_flag = true;
-      assert!(self.text_parser.consume_char() == '/');
+      self.text_parser.expect_char('/')?;
     }
     if self.text_parser.next_char() == '>' {
       // Closing character '>' could not be inline
       self.text_parser.consume_whitespace();
-      assert!(self.text_parser.consume_char() == '>');
+      self.text_parser.expect_char('>')?;
     }
 
     if !self_closing_tag_flag
@@ -63,26 +63,32 @@ impl HTMLParser {
         .all(|self_closing_tag| !tag_name.contains(self_closing_tag))
     {
       // Contents
-      children = self.parse_nodes();
+      children = self.parse_nodes()?;
 
       // Closing tag
-      assert!(self.text_parser.consume_char() == '<');
-      assert!(self.text_parser.consume_char() == '/');
-      assert!(self.parse_tag_name() == tag_name);
+      self.text_parser.expect_char('<')?;
+      self.text_parser.expect_char('/')?;
+      let closing_tag: String = self.parse_tag_name();
+      if closing_tag != tag_name {
+        return Err(format!(
+          "Mismatched tags: expected '</{}>', found '</{}>'",
+          tag_name, closing_tag
+        ));
+      }
       // Closing character '>' could not be inline
       self.text_parser.consume_whitespace();
-      assert!(self.text_parser.consume_char() == '>');
+      self.text_parser.expect_char('>')?;
     }
-    return dom::Node::element(tag_name, attributes, children);
+    Ok(dom::Node::element(tag_name, attributes, children))
   }
 
   // Parse a single comment, including its open tag, contents, and closing tag
-  fn parse_comment(&mut self) -> dom::Node {
+  fn parse_comment(&mut self) -> Result<dom::Node, String> {
     // Opening tag
-    assert!(self.text_parser.consume_char() == '<');
-    assert!(self.text_parser.consume_char() == '!');
-    assert!(self.text_parser.consume_char() == '-');
-    assert!(self.text_parser.consume_char() == '-');
+    self.text_parser.expect_char('<')?;
+    self.text_parser.expect_char('!')?;
+    self.text_parser.expect_char('-')?;
+    self.text_parser.expect_char('-')?;
 
     // Comment
     let comment: String = self.parse_comment_content();
@@ -90,15 +96,15 @@ impl HTMLParser {
     // Closing characters '-->' could not be inline
     self.text_parser.consume_whitespace();
     // Closing tag
-    assert!(self.text_parser.consume_char() == '-');
-    assert!(self.text_parser.consume_char() == '-');
-    assert!(self.text_parser.consume_char() == '>');
+    self.text_parser.expect_char('-')?;
+    self.text_parser.expect_char('-')?;
+    self.text_parser.expect_char('>')?;
 
-    return dom::Node::comment(comment);
+    Ok(dom::Node::comment(comment))
   }
 
   // Parse a single node
-  fn parse_node(&mut self) -> dom::Node {
+  fn parse_node(&mut self) -> Result<dom::Node, String> {
     match self.text_parser.next_char() {
       '<' => {
         if self.text_parser.next_offset_char(1) == '!' {
@@ -106,64 +112,69 @@ impl HTMLParser {
         }
         self.parse_element()
       }
-      _ => self.parse_text(),
+      _ => Ok(self.parse_text()),
     }
   }
 
   // Parse a single name="value" pair
-  fn parse_attribute(&mut self) -> (String, String) {
+  fn parse_attribute(&mut self) -> Result<(String, String), String> {
     let name: String = self.parse_tag_name();
-    assert!(self.text_parser.consume_char() == '=');
-    let value: String = self.parse_attribute_value();
-    return (name, value);
+    self.text_parser.expect_char('=')?;
+    let value: String = self.parse_attribute_value()?;
+    Ok((name, value))
   }
 
   // Parse a quoted value
-  fn parse_attribute_value(&mut self) -> String {
+  fn parse_attribute_value(&mut self) -> Result<String, String> {
     let open_quote: char = self.text_parser.consume_char();
-    assert!(open_quote == '"' || open_quote == '\'');
+    if open_quote != '"' && open_quote != '\'' {
+      return Err(format!(
+        "Expected quote character, found '{}'",
+        open_quote
+      ));
+    }
     let value: String = self.text_parser.consume_while(|c: char| c != open_quote);
-    assert!(self.text_parser.consume_char() == open_quote);
-    return value;
+    self.text_parser.expect_char(open_quote)?;
+    Ok(value)
   }
 
   // Parse a list of name="value" pairs, separated by whitespace
-  fn parse_attributes(&mut self) -> dom::AttributeMap {
+  fn parse_attributes(&mut self) -> Result<dom::AttributeMap, String> {
     let mut attributes: dom::AttributeMap = hashmap![];
     loop {
       self.text_parser.consume_whitespace();
       if self.text_parser.next_char() == '>' || self.text_parser.next_char() == '/' {
         break;
       }
-      let (name, value): (String, String) = self.parse_attribute();
+      let (name, value): (String, String) = self.parse_attribute()?;
       attributes.insert(name, value);
     }
-    return attributes;
+    Ok(attributes)
   }
 
   // Parse a sequence of sibling nodes
-  fn parse_nodes(&mut self) -> Vec<dom::Node> {
+  fn parse_nodes(&mut self) -> Result<Vec<dom::Node>, String> {
     let mut nodes: Vec<dom::Node> = Vec::new();
     loop {
       self.text_parser.consume_whitespace();
       if self.text_parser.eof() || self.text_parser.starts_with("</") {
         break;
       }
-      nodes.push(self.parse_node());
+      nodes.push(self.parse_node()?);
     }
-    return nodes;
+    Ok(nodes)
   }
 
   // Parse an HTML document and return the root element
-  pub fn parse(source: String) -> dom::Node {
-    let mut nodes: Vec<dom::Node> = HTMLParser::new(0, source).parse_nodes();
+  pub fn parse(source: String) -> Result<dom::Node, String> {
+    let mut nodes: Vec<dom::Node> = HTMLParser::new(0, source).parse_nodes()?;
 
     // If the document contains a root element, just return it. Otherwise, create one
-    if nodes.len() == 1 {
+    Ok(if nodes.len() == 1 {
       nodes.swap_remove(0)
     } else {
       dom::Node::element("html".to_string(), hashmap![], nodes)
-    }
+    })
   }
 }
 
@@ -212,7 +223,7 @@ mod tests {
     let node_1: dom::Node = dom::Node::element(tag_name_1, attributes_1, children_1);
 
     // Assert that the parse_element method correctly parses the element "<p class='paragraph'\n>Hello World!</p\n>"
-    assert_eq!(html_parser.parse_element(), node_1);
+    assert_eq!(html_parser.parse_element().unwrap(), node_1);
 
     html_parser = HTMLParser::new(0, "<div class='container' />".to_string());
     let tag_name_2: String = String::from("div");
@@ -221,7 +232,7 @@ mod tests {
     let node_2: dom::Node = dom::Node::element(tag_name_2, attributes_2, vec![]);
 
     // Assert that the parse_element method correctly parses the element "<div class='container' />"
-    assert_eq!(html_parser.parse_element(), node_2);
+    assert_eq!(html_parser.parse_element().unwrap(), node_2);
 
     html_parser = HTMLParser::new(0, "<link href='https://www.test.com' >".to_string());
     let tag_name_3: String = String::from("link");
@@ -230,7 +241,7 @@ mod tests {
     let node_3: dom::Node = dom::Node::element(tag_name_3, attributes_3, vec![]);
 
     // Assert that the parse_element method correctly parses the element "<link href='https://www.test.com' >"
-    assert_eq!(html_parser.parse_element(), node_3);
+    assert_eq!(html_parser.parse_element().unwrap(), node_3);
   }
 
   // Test the method parse_comment of the HTMLParser struct implementation
@@ -240,7 +251,7 @@ mod tests {
     let node: dom::Node = dom::Node::comment(" Hello World! ".to_string());
 
     // Assert that the parse_comment method correctly parses the element "<!-- Hello World! -->"
-    assert_eq!(html_parser.parse_comment(), node);
+    assert_eq!(html_parser.parse_comment().unwrap(), node);
   }
 
   // Test the method parse_node of the HTMLParser struct implementation
@@ -250,7 +261,7 @@ mod tests {
     let node: dom::Node = dom::Node::text("Hello World!".to_string());
 
     // Assert that the parse_node method correctly parses the text "Hello World!"
-    assert_eq!(html_parser.parse_node(), node);
+    assert_eq!(html_parser.parse_node().unwrap(), node);
 
     let mut html_parser: HTMLParser =
       HTMLParser::new(0, "<p class='paragraph'>Hello World!</p>".to_string());
@@ -261,7 +272,7 @@ mod tests {
     let node: dom::Node = dom::Node::element(tag_name, attributes, children);
 
     // Assert that the parse_element method correctly parses the element "<p class='paragraph'>Hello World!</p>"
-    assert_eq!(html_parser.parse_node(), node);
+    assert_eq!(html_parser.parse_node().unwrap(), node);
   }
 
   // Test the method parse_attribute of the HTMLParser struct implementation
@@ -272,7 +283,7 @@ mod tests {
 
     // Assert that the parse_attribute method correctly parses the attribute "class='paragraph'"
     assert_eq!(
-      html_parser.parse_attribute(),
+      html_parser.parse_attribute().unwrap(),
       ("class".to_string(), "paragraph".to_string())
     );
   }
@@ -284,7 +295,10 @@ mod tests {
       HTMLParser::new(9, "<p class='paragraph'>Hello World!</p>".to_string());
 
     // Assert that the parse_attribute_value method correctly parses the attribute value "paragraph"
-    assert_eq!(html_parser.parse_attribute_value(), "paragraph".to_string());
+    assert_eq!(
+      html_parser.parse_attribute_value().unwrap(),
+      "paragraph".to_string()
+    );
   }
 
   // Test the method parse_attributes of the HTMLParser struct implementation
@@ -297,7 +311,7 @@ mod tests {
     let attributes: dom::AttributeMap = hashmap![String::from("class") => String::from("paragraph"), String::from("style") => String::from("color:red;")];
 
     // Assert that the parse_attributes method correctly parses the attributes "class='paragraph' style='color:red;'"
-    assert_eq!(html_parser.parse_attributes(), attributes);
+    assert_eq!(html_parser.parse_attributes().unwrap(), attributes);
   }
 
   // Test the method parse_nodes of the HTMLParser struct implementation
@@ -327,7 +341,7 @@ mod tests {
     let node_2: dom::Node = dom::Node::element(tag_name_2, attributes_2, children_2);
 
     // Assert that the parse_nodes method correctly parses the nested and sibling nodes: node_1, node_2.node_3
-    assert_eq!(html_parser.parse_nodes(), vec![node_1, node_2]);
+    assert_eq!(html_parser.parse_nodes().unwrap(), vec![node_1, node_2]);
   }
 
   // Test the function parse of the HTMLParser struct implementation
@@ -358,12 +372,13 @@ mod tests {
     let node_1: dom::Node = dom::Node::element(tag_name_1, attributes_1, children_1);
 
     // Assert that the parse function correctly parses the nodes without a root element and then add the "html" tag as root element, returning it
-    assert_eq!(HTMLParser::parse("<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string()), node_1);
+    assert_eq!(HTMLParser::parse("<div class='container-1'></div><div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string()).unwrap(), node_1);
     // Assert that the parse function correctly parses the nodes with a root element and then returning it
     assert_eq!(
       HTMLParser::parse(
         "<div class='container-2'><p class='paragraph'>Hello World!</p></div>".to_string()
-      ),
+      )
+      .unwrap(),
       node_3
     );
   }
