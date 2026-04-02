@@ -147,3 +147,6 @@ impl Canvas {
     canvas
   }
 }
+
+#[cfg(test)]
+mod tests;

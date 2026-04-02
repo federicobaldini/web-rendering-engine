@@ -141,3 +141,6 @@ pub(super) fn build_display_list(layout_root: &layout::LayoutBox) -> DisplayList
   render_layout_box(&mut list, layout_root);
   return list;
 }
+
+#[cfg(test)]
+mod tests;

@@ -81,3 +81,6 @@ impl<'a> LayoutBox<'a> {
     self.dimensions.content.height = cursor_y + line_height;
   }
 }
+
+#[cfg(test)]
+mod tests;

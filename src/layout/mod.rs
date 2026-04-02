@@ -9,8 +9,6 @@ pub mod types;
 pub mod block;
 pub mod inline;
 pub mod tree;
-#[cfg(test)]
-mod tests;
 
 pub use types::{BoxType, Dimensions, EdgeSizes, LayoutBox, Rectangle};
 pub use tree::layout_tree;

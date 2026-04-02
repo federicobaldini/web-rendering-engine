@@ -138,3 +138,6 @@ pub fn style_tree<'a>(root: &'a dom::Node, stylesheet: &'a css::Stylesheet) -> S
       .collect(),
   )
 }
+
+#[cfg(test)]
+mod tests;

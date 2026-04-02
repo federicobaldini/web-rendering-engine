@@ -20,3 +20,6 @@ pub fn specified_values(element: &dom::ElementData, stylesheet: &css::Stylesheet
   }
   return values;
 }
+
+#[cfg(test)]
+mod tests;

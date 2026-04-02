@@ -1,6 +1,6 @@
 use crate::css;
 use crate::style::StyledNode;
-use super::{BoxType, Dimensions, LayoutBox};
+use super::{Dimensions, LayoutBox};
 
 fn sum<I>(iter: I) -> f32
 where
@@ -215,3 +215,6 @@ impl<'a> LayoutBox<'a> {
     self.calculate_block_height();
   }
 }
+
+#[cfg(test)]
+mod tests;
