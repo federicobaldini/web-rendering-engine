@@ -20,23 +20,47 @@ The engine implements the classic browser rendering pipeline in simplified form:
 
 ```
 src/
-  text_parser.rs    low-level character-by-character parsing utilities
-  html_parser.rs    HTML parser, produces a DOM tree
-  css_parser.rs     CSS parser, produces a stylesheet
-  dom.rs            DOM node types (element, text, comment)
-  css.rs            CSS data types (selectors, values, rules, stylesheet)
-  style.rs          CSS rule matching and style tree construction
-  layout.rs         CSS box model and block layout algorithm
-  painting.rs       display list generation and canvas rasterization
-  lib.rs            re-exports all modules as a public library
-  main.rs           command-line entry point
+├── dom.rs                    DOM node types (element, text, comment)
+├── css/
+│   └── mod.rs                CSS data types (selectors, values, rules, stylesheet)
+├── style/
+│   ├── mod.rs                re-exports and module declarations
+│   ├── matching.rs           selector matching against DOM nodes
+│   ├── cascade.rs            specificity-based cascade and specified values
+│   ├── tree.rs               StyledNode, Display, style tree construction
+│   └── tests.rs
+├── layout/
+│   ├── mod.rs                re-exports and module declarations
+│   ├── types.rs              Rectangle, EdgeSizes, Dimensions, LayoutBox, BoxType
+│   ├── block.rs              block layout algorithm
+│   ├── inline.rs             inline and anonymous block layout
+│   ├── tree.rs               layout tree construction
+│   └── tests.rs
+├── painting/
+│   ├── mod.rs                re-exports and module declarations
+│   ├── display_list.rs       display list generation (background, borders, text)
+│   ├── canvas.rs             pixel buffer rasterization and PNG output
+│   └── tests.rs
+├── parser/
+│   ├── mod.rs                re-exports and module declarations
+│   ├── text/
+│   │   ├── mod.rs            low-level character-by-character parsing utilities
+│   │   └── tests.rs
+│   ├── css/
+│   │   ├── mod.rs            CSS parser, produces a stylesheet
+│   │   └── tests.rs
+│   └── html/
+│       ├── mod.rs            HTML parser, produces a DOM tree
+│       └── tests.rs
+├── lib.rs                    re-exports all modules as a public library
+└── main.rs                   command-line entry point
 
 tests/
-  rendering.rs      end-to-end integration test for the full pipeline
+└── rendering.rs              end-to-end integration test for the full pipeline
 
 examples/
-  test.html         sample HTML document
-  test.css          sample CSS stylesheet
+├── test.html                 sample HTML document
+└── test.css                  sample CSS stylesheet
 ```
 
 ## Requirements
