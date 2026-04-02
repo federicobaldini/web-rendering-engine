@@ -175,6 +175,7 @@ impl Dimensions {
 pub enum BoxType<'a> {
   BlockNode(&'a style::StyledNode<'a>),
   InlineNode(&'a style::StyledNode<'a>),
+  InlineBlockNode(&'a style::StyledNode<'a>),
   AnonymousBlock,
 }
 
@@ -183,6 +184,7 @@ impl<'a> PartialEq for BoxType<'a> {
     match (self, other) {
       (BoxType::BlockNode(a), BoxType::BlockNode(b)) => a == b,
       (BoxType::InlineNode(a), BoxType::InlineNode(b)) => a == b,
+      (BoxType::InlineBlockNode(a), BoxType::InlineBlockNode(b)) => a == b,
       (BoxType::AnonymousBlock, BoxType::AnonymousBlock) => true,
       _ => false,
     }
@@ -232,7 +234,7 @@ impl<'a> LayoutBox<'a> {
 
   pub(super) fn get_style_node(&self) -> &'a style::StyledNode<'a> {
     match &self.box_type {
-      BoxType::BlockNode(node) | BoxType::InlineNode(node) => node,
+      BoxType::BlockNode(node) | BoxType::InlineNode(node) | BoxType::InlineBlockNode(node) => node,
       BoxType::AnonymousBlock => panic!("Anonymous block box has no style node"),
     }
   }
@@ -241,7 +243,7 @@ impl<'a> LayoutBox<'a> {
   pub fn get_inline_container(&mut self) -> &mut LayoutBox<'a> {
     match self.box_type {
       BoxType::InlineNode(_) | BoxType::AnonymousBlock => self,
-      BoxType::BlockNode(_) => {
+      BoxType::BlockNode(_) | BoxType::InlineBlockNode(_) => {
         // If we've just generated an anonymous block box, keep using it
         // Otherwise, create a new one
         match self.children.last() {

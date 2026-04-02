@@ -169,6 +169,35 @@ impl<'a> LayoutBox<'a> {
     }
   }
 
+  // Lay out an inline-block element: reads box model properties directly from CSS
+  // (no auto margin filling), lays out children vertically, then computes height.
+  // x/y are not set here — the parent anonymous block positions the box horizontally.
+  pub(super) fn layout_inline_block(&mut self, _containing_block: Dimensions) {
+    let style: &StyledNode = self.get_style_node();
+    let zero: css::Value = css::Value::Length(0.0, css::Unit::Px);
+
+    self.dimensions.padding.left = style.lookup("padding-left", "padding", &zero).to_px();
+    self.dimensions.padding.right = style.lookup("padding-right", "padding", &zero).to_px();
+    self.dimensions.padding.top = style.lookup("padding-top", "padding", &zero).to_px();
+    self.dimensions.padding.bottom = style.lookup("padding-bottom", "padding", &zero).to_px();
+
+    self.dimensions.border.left = style.lookup("border-left-width", "border-width", &zero).to_px();
+    self.dimensions.border.right = style.lookup("border-right-width", "border-width", &zero).to_px();
+    self.dimensions.border.top = style.lookup("border-top-width", "border-width", &zero).to_px();
+    self.dimensions.border.bottom = style.lookup("border-bottom-width", "border-width", &zero).to_px();
+
+    self.dimensions.margin.left = style.lookup("margin-left", "margin", &zero).to_px();
+    self.dimensions.margin.right = style.lookup("margin-right", "margin", &zero).to_px();
+    self.dimensions.margin.top = style.lookup("margin-top", "margin", &zero).to_px();
+    self.dimensions.margin.bottom = style.lookup("margin-bottom", "margin", &zero).to_px();
+
+    // Use explicit CSS width; no auto-fill since the box sits in an inline flow
+    self.dimensions.content.width = style.value("width").map(|v: css::Value| v.to_px()).unwrap_or(0.0);
+
+    self.layout_block_children();
+    self.calculate_block_height();
+  }
+
   // Lay out a block-level element and its descendants
   pub fn layout_block(&mut self, containing_block: Dimensions) {
     // Child width can depend on parent width, so we need to calculate this box's width before

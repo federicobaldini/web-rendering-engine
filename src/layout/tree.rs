@@ -7,6 +7,7 @@ impl<'a> LayoutBox<'a> {
     match &self.box_type {
       BoxType::BlockNode(_) => self.layout_block(containing_block),
       BoxType::InlineNode(_) => self.layout_inline(containing_block),
+      BoxType::InlineBlockNode(_) => self.layout_inline_block(containing_block),
       BoxType::AnonymousBlock => self.layout_anonymous_block(containing_block),
     }
   }
@@ -18,6 +19,7 @@ pub(super) fn build_layout_tree<'a>(style_node: &'a style::StyledNode<'a>) -> La
   let mut root: LayoutBox = LayoutBox::new(match style_node.display() {
     style::Display::Block => BoxType::BlockNode(style_node),
     style::Display::Inline => BoxType::InlineNode(style_node),
+    style::Display::InlineBlock => BoxType::InlineBlockNode(style_node),
     style::Display::None => panic!("Root node has display: none."),
   });
 
@@ -25,7 +27,7 @@ pub(super) fn build_layout_tree<'a>(style_node: &'a style::StyledNode<'a>) -> La
   for child in style_node.children() {
     match child.display() {
       style::Display::Block => root.children.push(build_layout_tree(child)),
-      style::Display::Inline => root
+      style::Display::Inline | style::Display::InlineBlock => root
         .get_inline_container()
         .children
         .push(build_layout_tree(child)),

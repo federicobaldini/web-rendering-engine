@@ -565,6 +565,77 @@ fn test_build_layout_tree() {
   );
 }
 
+// Test that two display:inline-block elements are placed side by side inside a block container
+#[test]
+fn test_layout_inline_block() {
+  let node_1: dom::Node = dom::Node::element(
+    "div".to_string(),
+    hashmap![String::from("class") => String::from("a")],
+    vec![],
+  );
+  let node_2: dom::Node = dom::Node::element(
+    "div".to_string(),
+    hashmap![String::from("class") => String::from("b")],
+    vec![],
+  );
+  let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![
+    css::Rule::new(
+      vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["a".to_string()]))],
+      vec![
+        css::Declaration::new("display".to_string(), css::Value::Keyword("inline-block".to_string())),
+        css::Declaration::new("width".to_string(), css::Value::Length(60.0, css::Unit::Px)),
+        css::Declaration::new("height".to_string(), css::Value::Length(40.0, css::Unit::Px)),
+      ],
+    ),
+    css::Rule::new(
+      vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["b".to_string()]))],
+      vec![
+        css::Declaration::new("display".to_string(), css::Value::Keyword("inline-block".to_string())),
+        css::Declaration::new("width".to_string(), css::Value::Length(80.0, css::Unit::Px)),
+        css::Declaration::new("height".to_string(), css::Value::Length(30.0, css::Unit::Px)),
+      ],
+    ),
+  ]);
+  let mut values_1: style::PropertyMap = hashmap![];
+  let mut values_2: style::PropertyMap = hashmap![];
+  match node_1.node_type() {
+    dom::NodeType::Element(element) => values_1 = style::specified_values(&element, &stylesheet),
+    _ => {}
+  }
+  match node_2.node_type() {
+    dom::NodeType::Element(element) => values_2 = style::specified_values(&element, &stylesheet),
+    _ => {}
+  }
+  let style_node_1: style::StyledNode = style::StyledNode::new(&node_1, values_1, vec![]);
+  let style_node_2: style::StyledNode = style::StyledNode::new(&node_2, values_2, vec![]);
+  let child_box_1: LayoutBox = LayoutBox::new(BoxType::InlineBlockNode(&style_node_1));
+  let child_box_2: LayoutBox = LayoutBox::new(BoxType::InlineBlockNode(&style_node_2));
+  let mut anon_box: LayoutBox = LayoutBox::new(BoxType::AnonymousBlock);
+  anon_box.add_child(child_box_1);
+  anon_box.add_child(child_box_2);
+
+  let containing_block: Dimensions = Dimensions::new(
+    Rectangle::new(0.0, 0.0, 200.0, 0.0),
+    EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+  );
+
+  anon_box.layout_anonymous_block(containing_block);
+
+  // Both children fit on one line: child 1 at x=0, child 2 at x=60
+  assert_eq!(anon_box.children()[0].dimensions().content().x(), 0.0);
+  assert_eq!(anon_box.children()[0].dimensions().content().y(), 0.0);
+  assert_eq!(anon_box.children()[0].dimensions().content().width(), 60.0);
+  assert_eq!(anon_box.children()[0].dimensions().content().height(), 40.0);
+  assert_eq!(anon_box.children()[1].dimensions().content().x(), 60.0);
+  assert_eq!(anon_box.children()[1].dimensions().content().y(), 0.0);
+  assert_eq!(anon_box.children()[1].dimensions().content().width(), 80.0);
+  assert_eq!(anon_box.children()[1].dimensions().content().height(), 30.0);
+  // Anonymous block height equals the tallest child
+  assert_eq!(anon_box.dimensions().content().height(), 40.0);
+}
+
 // Test the method layout_inline of the LayoutBox struct implementation
 #[test]
 fn test_layout_inline() {

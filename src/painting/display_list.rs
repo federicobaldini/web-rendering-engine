@@ -26,7 +26,9 @@ impl PartialEq for DisplayCommand {
 // Return the specified color for CSS property "name", or None if no color was specified.
 pub(super) fn get_color(layout_box: &layout::LayoutBox, name: &str) -> Option<css::Color> {
   match layout_box.box_type() {
-    layout::BoxType::BlockNode(style) | layout::BoxType::InlineNode(style) => {
+    layout::BoxType::BlockNode(style)
+    | layout::BoxType::InlineNode(style)
+    | layout::BoxType::InlineBlockNode(style) => {
       match style.value(name) {
         Some(css::Value::ColorValue(color)) => Some(color),
         _ => None,
