@@ -1,7 +1,7 @@
 use web_rendering_engine::css;
-use web_rendering_engine::css_parser::CSSParser;
+use web_rendering_engine::parser::css::CSSParser;
 use web_rendering_engine::dom;
-use web_rendering_engine::html_parser::HTMLParser;
+use web_rendering_engine::parser::html::HTMLParser;
 use web_rendering_engine::layout;
 use web_rendering_engine::painting;
 use web_rendering_engine::style;
