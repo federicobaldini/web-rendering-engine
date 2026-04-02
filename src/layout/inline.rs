@@ -1,6 +1,6 @@
 use crate::css;
 use crate::style::StyledNode;
-use super::{Dimensions, LayoutBox};
+use super::{BoxType, Dimensions, LayoutBox};
 
 impl<'a> LayoutBox<'a> {
   // Compute the dimensions of an inline-level element from its CSS properties.
@@ -63,6 +63,14 @@ impl<'a> LayoutBox<'a> {
         + child.dimensions.margin.top
         + child.dimensions.border.top
         + child.dimensions.padding.top;
+
+      // InlineBlockNode children were laid out with content.x/y = 0; now that their
+      // final position is known, shift all their descendants by the same delta.
+      if let BoxType::InlineBlockNode(_) = child.box_type {
+        let dx = child.dimensions.content.x;
+        let dy = child.dimensions.content.y;
+        child.offset_descendants(dx, dy);
+      }
 
       cursor_x += child_margin_width;
       if child_margin_height > line_height {

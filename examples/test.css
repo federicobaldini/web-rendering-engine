@@ -103,6 +103,72 @@
   height: 20px;
 }
 
+.card-inline {
+  display: block;
+  background: #fff8e1;
+  border-width: 3px;
+  border-color: #f9a825;
+  padding: 10px;
+  margin: 4px;
+}
+
+.strip-inline {
+  display: block;
+  background: #ffe082;
+  padding: 7px;
+  height: 20px;
+}
+
+.inline-row {
+  display: block;
+  padding: 6px;
+}
+
+.badge-red {
+  display: inline-block;
+  background: #e57373;
+  padding: 4px;
+  margin: 2px;
+  width: 50px;
+  height: 16px;
+}
+
+.badge-green {
+  display: inline-block;
+  background: #81c784;
+  padding: 4px;
+  margin: 2px;
+  width: 40px;
+  height: 16px;
+}
+
+.badge-blue {
+  display: inline-block;
+  background: #64b5f6;
+  padding: 4px;
+  margin: 2px;
+  width: 50px;
+  height: 16px;
+}
+
+.badge-purple {
+  display: inline-block;
+  background: #ba68c8;
+  padding: 4px;
+  margin: 2px;
+  width: 44px;
+  height: 16px;
+}
+
+.badge-orange {
+  display: inline-block;
+  background: #ffb74d;
+  padding: 4px;
+  margin: 2px;
+  width: 40px;
+  height: 16px;
+}
+
 .footer {
   display: block;
   background: #eeeeee;

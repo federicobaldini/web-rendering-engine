@@ -636,6 +636,105 @@ fn test_layout_inline_block() {
   assert_eq!(anon_box.dimensions().content().height(), 40.0);
 }
 
+// Test that descendants of an InlineBlockNode get their positions correctly offset
+// after the parent anonymous block finalizes the inline-block's position.
+// Regression test: children were laid out with x=0,y=0 as the base and never updated.
+#[test]
+fn test_inline_block_descendant_positions() {
+  // Inner text node inside the second inline-block (offset x=60)
+  let inner_node: dom::Node = dom::Node::element(
+    "span".to_string(),
+    hashmap![String::from("class") => String::from("inner")],
+    vec![],
+  );
+  let node_1: dom::Node = dom::Node::element(
+    "div".to_string(),
+    hashmap![String::from("class") => String::from("a")],
+    vec![],
+  );
+  let node_2: dom::Node = dom::Node::element(
+    "div".to_string(),
+    hashmap![String::from("class") => String::from("b")],
+    vec![inner_node.clone()],
+  );
+  let stylesheet: css::Stylesheet = css::Stylesheet::new(vec![
+    css::Rule::new(
+      vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["a".to_string()]))],
+      vec![
+        css::Declaration::new("display".to_string(), css::Value::Keyword("inline-block".to_string())),
+        css::Declaration::new("width".to_string(), css::Value::Length(60.0, css::Unit::Px)),
+        css::Declaration::new("height".to_string(), css::Value::Length(40.0, css::Unit::Px)),
+      ],
+    ),
+    css::Rule::new(
+      vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["b".to_string()]))],
+      vec![
+        css::Declaration::new("display".to_string(), css::Value::Keyword("inline-block".to_string())),
+        css::Declaration::new("width".to_string(), css::Value::Length(80.0, css::Unit::Px)),
+        css::Declaration::new("height".to_string(), css::Value::Length(30.0, css::Unit::Px)),
+      ],
+    ),
+    css::Rule::new(
+      vec![css::Selector::Simple(css::SimpleSelector::new(None, None, vec!["inner".to_string()]))],
+      vec![
+        css::Declaration::new("display".to_string(), css::Value::Keyword("inline-block".to_string())),
+        css::Declaration::new("width".to_string(), css::Value::Length(20.0, css::Unit::Px)),
+        css::Declaration::new("height".to_string(), css::Value::Length(10.0, css::Unit::Px)),
+      ],
+    ),
+  ]);
+  let mut values_1: style::PropertyMap = hashmap![];
+  let mut values_2: style::PropertyMap = hashmap![];
+  let mut values_inner: style::PropertyMap = hashmap![];
+  match node_1.node_type() {
+    dom::NodeType::Element(element) => values_1 = style::specified_values(&element, &stylesheet),
+    _ => {}
+  }
+  match node_2.node_type() {
+    dom::NodeType::Element(element) => values_2 = style::specified_values(&element, &stylesheet),
+    _ => {}
+  }
+  match inner_node.node_type() {
+    dom::NodeType::Element(element) => values_inner = style::specified_values(&element, &stylesheet),
+    _ => {}
+  }
+  let style_inner: style::StyledNode = style::StyledNode::new(&inner_node, values_inner, vec![]);
+  let style_node_1: style::StyledNode = style::StyledNode::new(&node_1, values_1, vec![]);
+  let style_node_2: style::StyledNode = style::StyledNode::new(&node_2, values_2, vec![style_inner]);
+
+  let child_box_1: LayoutBox = LayoutBox::new(BoxType::InlineBlockNode(&style_node_1));
+  let mut child_box_2: LayoutBox = LayoutBox::new(BoxType::InlineBlockNode(&style_node_2));
+  // Build the layout subtree for node_2's child manually
+  let inner_style = &style_node_2.children()[0];
+  let inner_box: LayoutBox = LayoutBox::new(BoxType::InlineBlockNode(inner_style));
+  let mut anon_for_2: LayoutBox = LayoutBox::new(BoxType::AnonymousBlock);
+  anon_for_2.add_child(inner_box);
+  child_box_2.add_child(anon_for_2);
+
+  let mut anon_box: LayoutBox = LayoutBox::new(BoxType::AnonymousBlock);
+  anon_box.add_child(child_box_1);
+  anon_box.add_child(child_box_2);
+
+  let containing_block: Dimensions = Dimensions::new(
+    Rectangle::new(0.0, 0.0, 200.0, 0.0),
+    EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+    EdgeSizes::new(0.0, 0.0, 0.0, 0.0),
+  );
+
+  anon_box.layout_anonymous_block(containing_block);
+
+  // node_2 is positioned at x=60; its anonymous block child must reflect that offset
+  let node_2_box = &anon_box.children()[1];
+  assert_eq!(node_2_box.dimensions().content().x(), 60.0);
+  let anon_child = &node_2_box.children()[0]; // anonymous block inside node_2
+  assert_eq!(anon_child.dimensions().content().x(), 60.0,
+    "anonymous block inside inline-block should inherit the parent's x offset");
+  let inner = &anon_child.children()[0]; // inner inline-block
+  assert_eq!(inner.dimensions().content().x(), 60.0,
+    "descendant of inline-block should have x offset propagated, not stuck at 0");
+}
+
 // Test the method layout_inline of the LayoutBox struct implementation
 #[test]
 fn test_layout_inline() {

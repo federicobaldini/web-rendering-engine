@@ -232,6 +232,16 @@ impl<'a> LayoutBox<'a> {
     self.children.push(new_layout_box);
   }
 
+  // Recursively shift all descendant content positions by (dx, dy).
+  // Used to fix up children of InlineBlockNode after their parent's position is finalized.
+  pub(super) fn offset_descendants(&mut self, dx: f32, dy: f32) {
+    for child in &mut self.children {
+      child.dimensions.content.x += dx;
+      child.dimensions.content.y += dy;
+      child.offset_descendants(dx, dy);
+    }
+  }
+
   pub(super) fn get_style_node(&self) -> &'a style::StyledNode<'a> {
     match &self.box_type {
       BoxType::BlockNode(node) | BoxType::InlineNode(node) | BoxType::InlineBlockNode(node) => node,

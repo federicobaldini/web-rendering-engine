@@ -55,9 +55,6 @@ src/
 ├── lib.rs                    re-exports all modules as a public library
 └── main.rs                   command-line entry point
 
-tests/
-└── rendering.rs              end-to-end integration test for the full pipeline
-
 examples/
 ├── test.html                 sample HTML document
 └── test.css                  sample CSS stylesheet
@@ -89,7 +86,7 @@ cargo run -- --html path/to/file.html --css path/to/file.css --output result.png
 cargo test
 ```
 
-This runs both the unit tests (one per module) and the integration test that exercises the full HTML to PNG pipeline.
+This runs the unit tests (one per module).
 
 ## What is supported
 
@@ -103,7 +100,7 @@ The parser handles type, id, and class selectors with specificity-based cascade 
 
 **Layout**
 
-The engine implements the CSS block and inline layout algorithms from the CSS 2.1 specification, including the box model (content, padding, border, margin), automatic width distribution, vertical stacking of block children, and horizontal placement of inline children with line wrapping.
+The engine implements the CSS block, inline, and inline-block layout algorithms from the CSS 2.1 specification, including the box model (content, padding, border, margin), automatic width distribution, vertical stacking of block children, and horizontal placement of inline and inline-block children with line wrapping.
 
 **Painting**
 

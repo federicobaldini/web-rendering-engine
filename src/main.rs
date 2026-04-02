@@ -45,7 +45,7 @@ fn run() -> Result<(), String> {
   // Since we don't have an actual window, hard-code the "viewport" size.
   let mut viewport: layout::Dimensions = Default::default();
   viewport.set_content().set_width(800.0);
-  viewport.set_content().set_height(600.0);
+  viewport.set_content().set_height(800.0);
 
   // Parsing and rendering:
   let root_node: dom::Node = HTMLParser::parse(html)?;
